@@ -278,23 +278,31 @@ class HybridRetriever:
                 "deleted": len(obsolete),
             }
 
+    async def _validated_chunks(self) -> list[Source]:
+        chunks, fingerprint = await asyncio.to_thread(load_corpus, self.corpus_dir)
+        await self._refresh_collection()
+        metadata, known_ids = self._manifest()
+        if not metadata["indexed"]:
+            raise ValueError("Knowledge corpus is not indexed")
+        if metadata["corpus_fingerprint"] != fingerprint:
+            raise ValueError("Indexed corpus does not match local corpus; run ingestion")
+        if known_ids != {chunk.id for chunk in chunks}:
+            raise ValueError("Indexed chunks do not match local corpus; run ingestion")
+        existing = await self.collection.get(ids=sorted(known_ids), include=[])
+        if set(existing["ids"]) != known_ids:
+            raise ValueError("Indexed chunks are missing; run ingestion")
+        return chunks
+
+    async def ready(self) -> None:
+        async with self._lock:
+            await self._validated_chunks()
+
     async def search(self, query: str) -> list[Source]:
         if not query.strip():
             return []
         async with self._lock:
-            chunks, fingerprint = await asyncio.to_thread(load_corpus, self.corpus_dir)
-            await self._refresh_collection()
-            metadata, known_ids = self._manifest()
-            if not metadata["indexed"]:
-                raise ValueError("Knowledge corpus is not indexed")
-            if metadata["corpus_fingerprint"] != fingerprint:
-                raise ValueError("Indexed corpus does not match local corpus; run ingestion")
+            chunks = await self._validated_chunks()
             current = {chunk.id: chunk for chunk in chunks}
-            if known_ids != current.keys():
-                raise ValueError("Indexed chunks do not match local corpus; run ingestion")
-            existing = await self.collection.get(ids=sorted(known_ids), include=[])
-            if set(existing["ids"]) != known_ids:
-                raise ValueError("Indexed chunks are missing; run ingestion")
             lexical = await asyncio.to_thread(lexical_ranking, chunks, query)
             vector = await self.embeddings.aembed_query(query)
             self._validate_embeddings([vector], 1)
@@ -303,7 +311,7 @@ class HybridRetriever:
                 n_results=min(len(chunks), max(self.settings.top_k * 4, 10)),
                 include=["distances"],
             )
-            vector_ids = [chunk_id for chunk_id in result["ids"][0] if chunk_id in known_ids]
+            vector_ids = [chunk_id for chunk_id in result["ids"][0] if chunk_id in current]
             fused = reciprocal_rank_fusion(lexical, vector_ids, self.settings.top_k)
             return [current[chunk_id] for chunk_id in fused]
 

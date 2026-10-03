@@ -321,6 +321,32 @@ async def test_deleted_last_document_refuses_ingestion_without_deleting_index(re
     assert set(retriever.collection.rows) == old_ids
 
 
+@pytest.mark.asyncio
+async def test_ready_validates_without_paid_calls_or_query(retriever):
+    with pytest.raises(ValueError, match="not indexed"):
+        await retriever.ready()
+    await retriever.ingest()
+
+    async def unexpected_call(*args, **kwargs):
+        pytest.fail("readiness must not embed or query")
+
+    retriever.embeddings.aembed_query = unexpected_call
+    retriever.embeddings.aembed_documents = unexpected_call
+    retriever.collection.query = unexpected_call
+    assert await retriever.ready() is None
+    retriever.collection.rows.clear()
+    with pytest.raises(ValueError, match="missing"):
+        await retriever.ready()
+
+
+@pytest.mark.asyncio
+async def test_ready_rejects_stale_corpus(retriever):
+    await retriever.ingest()
+    write_doc(retriever.corpus_dir, text="Nuevo domicilio")
+    with pytest.raises(ValueError, match="does not match"):
+        await retriever.ready()
+
+
 def test_global_corpus_has_nine_original_guides_and_no_case_data():
     chunks, _ = load_corpus(CORPUS_DIR)
     assert len({chunk.source for chunk in chunks}) == 9
