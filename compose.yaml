@@ -1,0 +1,54 @@
+name: saas-support-intelligence
+x-runtime: &runtime
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  LLM_MODEL: ${LLM_MODEL:-}
+  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+  EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-1536}
+  CUSTOMER_A_KEY: ${CUSTOMER_A_KEY:-}
+  CUSTOMER_B_KEY: ${CUSTOMER_B_KEY:-}
+  APPROVER_A_KEY: ${APPROVER_A_KEY:-}
+  APPROVER_B_KEY: ${APPROVER_B_KEY:-}
+  LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+  LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+  LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+  LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-saas-support-intelligence}
+  CHROMA_COLLECTION: ${CHROMA_COLLECTION:-support-knowledge}
+  REDIS_PREFIX: ${REDIS_PREFIX:-saas-support}
+  REDIS_URL: redis://redis:6379/0
+  CHROMA_HOST: chroma
+  CHROMA_PORT: 8000
+services:
+  redis:
+    image: redis:8.2.1
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["127.0.0.1:16389:6379"]
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+  chroma:
+    image: chromadb/chroma:1.5.9
+    environment:
+      ANONYMIZED_TELEMETRY: "False"
+    ports: ["127.0.0.1:18081:8000"]
+    volumes: ["chroma-data:/data"]
+  ingest:
+    build: .
+    environment: *runtime
+    command: ["python", "-m", "scripts.ingest"]
+    depends_on:
+      redis: {condition: service_healthy}
+      chroma: {condition: service_started}
+    restart: on-failure:3
+  api:
+    build: .
+    environment: *runtime
+    ports: ["127.0.0.1:18080:8000"]
+    depends_on:
+      ingest: {condition: service_completed_successfully}
+    restart: unless-stopped
+volumes:
+  redis-data:
+  chroma-data:

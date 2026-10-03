@@ -1,7 +1,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Contract(BaseModel):
@@ -122,9 +122,3 @@ class CaseResult(Contract):
 
 class SearchResult(Contract):
     sources: list[Source]
-
-
-class ClientCredential(Contract):
-    key: SecretStr
-    tenant_id: str
-    role: Literal["customer", "approver"]
