@@ -12,19 +12,18 @@ import httpx
 import tiktoken
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import Field, field_validator
 from rank_bm25 import BM25Okapi
 
 from app.config import BASE_DIR, Settings
-from app.schemas import Source
+from app.schemas import Provenance, Source
 
 logger = logging.getLogger(__name__)
 CORPUS_DIR = BASE_DIR / "data" / "knowledge"
 MANIFEST_VERSION = "support-corpus-v1"
 
 
-class KnowledgeDocument(BaseModel):
-    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+class KnowledgeDocument(Provenance):
     title: str = Field(min_length=1, max_length=200)
     version: str = Field(min_length=1, max_length=40)
     text: str = Field(min_length=1, max_length=1000000)
@@ -78,6 +77,9 @@ def load_corpus(directory: Path) -> tuple[list[Source], str]:
                     title=document.title,
                     version=document.version,
                     text=text,
+                    kind=document.kind,
+                    source_url=document.source_url,
+                    checked_at=document.checked_at,
                 )
         except (OSError, ValueError):
             logger.error("Invalid knowledge document: %s", path.name)
@@ -108,6 +110,9 @@ def chunk_metadata(chunk: Source) -> dict[str, str]:
         "version": chunk.version,
         "text": chunk.text,
         "category": Path(chunk.source).stem,
+        "kind": chunk.kind,
+        **({"source_url": chunk.source_url} if chunk.source_url else {}),
+        **({"checked_at": chunk.checked_at} if chunk.checked_at else {}),
     }
 
 

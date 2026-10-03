@@ -3,6 +3,10 @@ import { ArrowClockwise, ShieldCheck } from "@phosphor-icons/react";
 import { isActive, statusLabel, type Api } from "./api";
 import type { AcceptedJob, Job } from "./types";
 import Context from "./Context";
+type Observation = {
+  controller: AbortController;
+  timer?: ReturnType<typeof setTimeout>;
+};
 export default function Approver({ api }: { api: Api }) {
   const [items, setItems] = useState<Job[]>([]);
   const [selected, setSelected] = useState<Job | null>(null);
@@ -11,9 +15,24 @@ export default function Approver({ api }: { api: Api }) {
   const [busy, setBusy] = useState(false);
   const [confirmation, setConfirmation] = useState<boolean | null>(null);
   const controller = useRef(new AbortController());
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const observation = useRef<Observation | null>(null);
+  const confirmationTrigger = useRef<HTMLButtonElement | null>(null);
+  const reviewHeading = useRef<HTMLHeadingElement | null>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
   const locked = useRef(false);
   const sequence = useRef(0);
+  useEffect(() => {
+    if (confirmation === null && returnFocus.current) {
+      returnFocus.current.focus();
+      returnFocus.current = null;
+    }
+  }, [confirmation]);
+  const closeConfirmation = (confirmed = false) => {
+    returnFocus.current = confirmed
+      ? reviewHeading.current
+      : confirmationTrigger.current;
+    setConfirmation(null);
+  };
   const refresh = async () => {
     const version = ++sequence.current;
     const signal = controller.current.signal;
@@ -47,34 +66,52 @@ export default function Approver({ api }: { api: Api }) {
     void refresh();
     return () => {
       request.abort();
-      clearTimeout(timer.current);
+      observation.current?.controller.abort();
+      clearTimeout(observation.current?.timer);
+      observation.current = null;
     };
   }, [api]);
-  const poll = async (id: string, started: number) => {
-    try {
-      const updated = await api<Job>(`/jobs/${id}`, controller.current.signal);
-      if (controller.current.signal.aborted) return;
-      setSelected((current) => (current?.id === id ? updated : current));
-      if (isActive(updated.status)) {
-        if (Date.now() - started > 210_000) {
+  const observe = (id: string) => {
+    if (observation.current || controller.current.signal.aborted) return;
+    const run: Observation = {
+      controller: new AbortController(),
+    };
+    observation.current = run;
+    const started = Date.now();
+    setError("");
+    setBusy(true);
+    locked.current = true;
+    const finish = () => {
+      if (observation.current !== run) return;
+      clearTimeout(run.timer);
+      run.controller.abort();
+      observation.current = null;
+      setBusy(false);
+      locked.current = false;
+    };
+    const poll = async () => {
+      try {
+        const updated = await api<Job>(`/jobs/${id}`, run.controller.signal);
+        if (run.controller.signal.aborted || observation.current !== run)
+          return;
+        setSelected((current) => (current?.id === id ? updated : current));
+        if (!isActive(updated.status)) {
+          finish();
+          void refresh();
+        } else if (Date.now() - started > 210_000) {
           setError(
             "Esta tarea demora más de lo esperado. Actualizá la decisión para consultar su estado.",
           );
-          setBusy(false);
-          locked.current = false;
-        } else timer.current = setTimeout(() => void poll(id, started), 1500);
-      } else {
-        setBusy(false);
-        locked.current = false;
-        void refresh();
+          finish();
+        } else run.timer = setTimeout(() => void poll(), 1500);
+      } catch (e) {
+        if (!run.controller.signal.aborted && observation.current === run) {
+          setError((e as Error).message);
+          finish();
+        }
       }
-    } catch (e) {
-      if (!controller.current.signal.aborted) {
-        setError((e as Error).message);
-        setBusy(false);
-        locked.current = false;
-      }
-    }
+    };
+    void poll();
   };
   const decide = async () => {
     if (!selected || confirmation === null || locked.current) return;
@@ -83,7 +120,7 @@ export default function Approver({ api }: { api: Api }) {
     setError("");
     const id = selected.id;
     const approved = confirmation;
-    setConfirmation(null);
+    closeConfirmation(true);
     try {
       const result = await api<AcceptedJob>(
         `/jobs/${id}/approve`,
@@ -94,7 +131,7 @@ export default function Approver({ api }: { api: Api }) {
         setSelected((current) =>
           current?.id === id ? { ...current, status: result.status } : current,
         );
-        void poll(id, Date.now());
+        observe(id);
       }
     } catch (e) {
       if (!controller.current.signal.aborted) {
@@ -115,7 +152,7 @@ export default function Approver({ api }: { api: Api }) {
           className="subtle refresh"
           aria-label="Actualizar aprobaciones"
           onClick={refresh}
-          disabled={loading}
+          disabled={loading || busy}
         >
           <ArrowClockwise size={16} /> Actualizar bandeja
         </button>
@@ -150,7 +187,9 @@ export default function Approver({ api }: { api: Api }) {
         <div className="chat-header">
           <div>
             <span className="eyebrow">Espacio de revisión</span>
-            <h2>Tomá la decisión final.</h2>
+            <h2 ref={reviewHeading} tabIndex={-1}>
+              Tomá la decisión final.
+            </h2>
           </div>
         </div>
         {error && (
@@ -159,9 +198,10 @@ export default function Approver({ api }: { api: Api }) {
             <button
               onClick={() =>
                 selected && isActive(selected.status)
-                  ? void poll(selected.id, Date.now())
+                  ? observe(selected.id)
                   : void refresh()
               }
+              disabled={busy || loading}
             >
               Actualizar decisión
             </button>
@@ -193,14 +233,20 @@ export default function Approver({ api }: { api: Api }) {
                 <button
                   className="primary"
                   disabled={busy}
-                  onClick={() => setConfirmation(true)}
+                  onClick={(event) => {
+                    confirmationTrigger.current = event.currentTarget;
+                    setConfirmation(true);
+                  }}
                 >
                   Aprobar borrador
                 </button>
                 <button
                   className="secondary"
                   disabled={busy}
-                  onClick={() => setConfirmation(false)}
+                  onClick={(event) => {
+                    confirmationTrigger.current = event.currentTarget;
+                    setConfirmation(false);
+                  }}
                 >
                   Rechazar borrador
                 </button>
@@ -233,7 +279,7 @@ export default function Approver({ api }: { api: Api }) {
             aria-modal="true"
             aria-labelledby="confirmation-title"
             onKeyDown={(e) => {
-              if (e.key === "Escape") setConfirmation(null);
+              if (e.key === "Escape") closeConfirmation();
               if (e.key === "Tab") {
                 const buttons = e.currentTarget.querySelectorAll("button");
                 const first = buttons[0];
@@ -262,7 +308,7 @@ export default function Approver({ api }: { api: Api }) {
             <button autoFocus className="primary" onClick={decide}>
               {confirmation ? "Confirmar aprobación" : "Confirmar rechazo"}
             </button>
-            <button className="secondary" onClick={() => setConfirmation(null)}>
+            <button className="secondary" onClick={() => closeConfirmation()}>
               Cancelar
             </button>
           </section>

@@ -7,7 +7,7 @@ export class ApiError extends Error {
   }
 }
 const errors: Record<number, string> = {
-  401: "Tu sesión de prueba venció. Volvé a ingresar.",
+  401: "La credencial es inválida o venció. Revisala y volvé a ingresar.",
   403: "Esta cuenta no tiene permiso para esta acción.",
   404: "Este elemento ya no está disponible.",
   409: "La tarea cambió. Actualizá antes de volver a intentar.",

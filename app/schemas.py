@@ -1,7 +1,9 @@
+from datetime import date
 from typing import Literal
+from urllib.parse import urlsplit
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Contract(BaseModel):
@@ -13,7 +15,40 @@ class Principal(Contract):
     role: Literal["customer", "approver"]
 
 
-class Source(Contract):
+class Provenance(Contract):
+    kind: Literal["synthetic", "public"] = "synthetic"
+    source_url: str | None = Field(default=None, max_length=500)
+    checked_at: str | None = None
+
+    @field_validator("source_url")
+    @classmethod
+    def public_url(cls, value: str | None) -> str | None:
+        if value is not None:
+            parsed = urlsplit(value)
+            if (
+                parsed.scheme != "https"
+                or not parsed.hostname
+                or parsed.username
+                or parsed.password
+            ):
+                raise ValueError("Source URL must be HTTPS without credentials")
+        return value
+
+    @field_validator("checked_at")
+    @classmethod
+    def checked_date(cls, value: str | None) -> str | None:
+        if value is not None:
+            return date.fromisoformat(value).isoformat()
+        return value
+
+    @model_validator(mode="after")
+    def public_source(self) -> "Provenance":
+        if self.kind == "public" and (not self.source_url or not self.checked_at):
+            raise ValueError("Public sources require a URL and consultation date")
+        return self
+
+
+class Source(Provenance):
     id: str = Field(min_length=1, max_length=100)
     title: str = Field(min_length=1, max_length=200)
     source: str = Field(min_length=1, max_length=100)
@@ -73,6 +108,12 @@ class Conversation(Contract):
 
 
 JobStatus = Literal["PENDING", "RUNNING", "WAITING_APPROVAL", "DONE", "FAILED", "REJECTED"]
+
+
+class ConversationSummary(Conversation):
+    title: str
+    updated_at: float
+    last_job_status: JobStatus | None = None
 
 
 class Job(Contract):

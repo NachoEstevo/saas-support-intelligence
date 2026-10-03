@@ -250,3 +250,111 @@ it("polls actual job completion and aborts an in-flight poll when logging out", 
   resolve(new Response(JSON.stringify(job())));
   expect(screen.queryByText("A verified answer")).toBeNull();
 });
+it("preserves a new draft typed while a new conversation is being created", async () => {
+  const user = await login();
+  const original = globalThis.fetch;
+  let resolve!: (response: Response) => void;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((path, options) =>
+      path === "/conversations" && options?.method === "POST"
+        ? new Promise<Response>((r) => {
+            resolve = r;
+          })
+        : original(path, options),
+    ),
+  );
+  await user.type(screen.getByLabelText("Mensaje"), "Old draft");
+  await user.click(screen.getByRole("button", { name: "Nueva conversación" }));
+  fireEvent.change(screen.getByLabelText("Mensaje"), {
+    target: { value: "My next question" },
+  });
+  resolve(new Response(JSON.stringify({ id: "c2" })));
+  await waitFor(() =>
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Nueva conversación",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(false),
+  );
+  expect((screen.getByLabelText("Mensaje") as HTMLTextAreaElement).value).toBe(
+    "My next question",
+  );
+});
+it("retries reviewer observation only once and clears the previous transient error", async () => {
+  const user = await login("approver");
+  await user.click(await screen.findByRole("button", { name: /Draft ticket/ }));
+  await user.click(screen.getByRole("button", { name: "Aprobar borrador" }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (path: string) =>
+      path.endsWith("/approve")
+        ? new Response(JSON.stringify({ id: "j1", status: "RUNNING" }))
+        : new Response("{}", { status: 503 }),
+    ),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Confirmar aprobación" }),
+  );
+  await screen.findByRole("alert");
+  let resolve!: (response: Response) => void;
+  let observations = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (path: string) => {
+      if (path === "/jobs/j1") {
+        observations++;
+        return new Promise<Response>((r) => {
+          resolve = r;
+        });
+      }
+      return new Response("[]");
+    }),
+  );
+  const retry = screen.getByRole("button", { name: "Actualizar decisión" });
+  fireEvent.click(retry);
+  fireEvent.click(retry);
+  fireEvent.click(retry);
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(observations).toBe(1);
+  expect(
+    (
+      screen.getByRole("button", {
+        name: "Actualizar aprobaciones",
+      }) as HTMLButtonElement
+    ).disabled,
+  ).toBe(true);
+  resolve(
+    new Response(JSON.stringify(job({ ticket_id: "single-run-ticket" }))),
+  );
+  expect(await screen.findByText(/single-run-ticket/)).toBeTruthy();
+});
+it("restores approval trigger focus after cancel and Escape", async () => {
+  const user = await login("approver");
+  await user.click(await screen.findByRole("button", { name: /Draft ticket/ }));
+  const approve = screen.getByRole("button", { name: "Aprobar borrador" });
+  await user.click(approve);
+  await user.click(screen.getByRole("button", { name: "Cancelar" }));
+  expect(document.activeElement).toBe(approve);
+  const reject = screen.getByRole("button", { name: "Rechazar borrador" });
+  await user.click(reject);
+  await user.keyboard("{Escape}");
+  expect(document.activeElement).toBe(reject);
+});
+it("moves focus to a surviving review heading after confirming a decision", async () => {
+  const user = await login("approver");
+  await user.click(await screen.findByRole("button", { name: /Draft ticket/ }));
+  await user.click(screen.getByRole("button", { name: "Rechazar borrador" }));
+  serve({
+    "/jobs/j1/approve": { id: "j1", status: "REJECTED" },
+    "/jobs/j1": job({ status: "REJECTED" }),
+    "/approvals": [],
+  });
+  await user.click(screen.getByRole("button", { name: "Confirmar rechazo" }));
+  await screen.findByText("Rechazado");
+  expect(document.activeElement).toBe(
+    screen.getByRole("heading", { name: "Tomá la decisión final." }),
+  );
+});

@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
+from fastapi.staticfiles import StaticFiles
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
@@ -17,6 +18,7 @@ from app.schemas import (
     AcceptedJob,
     ApprovalRequest,
     Conversation,
+    ConversationSummary,
     Health,
     Job,
     MessageRequest,
@@ -79,6 +81,16 @@ def create_app(
 
     Identity = Annotated[Principal, Depends(authenticate)]
 
+    @app.middleware("http")
+    async def private_responses(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith(
+            ("/identity", "/conversations", "/jobs", "/approvals", "/tickets")
+        ):
+            response.headers["Cache-Control"] = "no-store"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
     @app.exception_handler(NotFound)
     async def not_found(request: Request, error: NotFound):
         return JSONResponse(status_code=404, content={"detail": "Resource not found"})
@@ -109,6 +121,28 @@ def create_app(
             raise HTTPException(403, "Customer credential required")
         return await app.state.store.create_conversation(identity.tenant_id)
 
+    @app.get("/identity", response_model=Principal)
+    async def get_identity(identity: Identity) -> Principal:
+        return identity
+
+    @app.get("/conversations", response_model=list[ConversationSummary])
+    async def list_conversations(identity: Identity) -> list[ConversationSummary]:
+        if identity.role != "customer":
+            raise HTTPException(403, "Customer credential required")
+        return await app.state.store.list_conversations(identity.tenant_id)
+
+    @app.get("/conversations/{conversation_id}/jobs", response_model=list[Job])
+    async def history(conversation_id: UUID, identity: Identity) -> list[Job]:
+        if identity.role != "customer":
+            raise HTTPException(403, "Customer credential required")
+        return await app.state.store.list_conversation_jobs(conversation_id, identity.tenant_id)
+
+    @app.get("/approvals", response_model=list[Job])
+    async def list_approvals(identity: Identity) -> list[Job]:
+        if identity.role != "approver":
+            raise HTTPException(403, "Approver credential required")
+        return await app.state.store.list_approvals(identity.tenant_id)
+
     @app.post(
         "/conversations/{conversation_id}/messages", status_code=202, response_model=AcceptedJob
     )
@@ -135,4 +169,7 @@ def create_app(
     async def get_ticket(ticket_id: UUID, identity: Identity) -> Ticket:
         return await app.state.store.get_ticket(ticket_id, identity.tenant_id)
 
+    web_dist = BASE_DIR / "web" / "dist"
+    if web_dist.is_dir():
+        app.mount("/", StaticFiles(directory=web_dist, html=True), name="web")
     return app

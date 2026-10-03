@@ -4,18 +4,18 @@
   "scenarios": [
     {
       "scenario": "documented-answer",
-      "request": "¿Qué formatos de archivo puedo cargar y cuál es el tamaño máximo?",
-      "conversation_id": "ca45cd20-815c-47c6-a220-774ed88d29f6",
-      "seconds": 16.2,
+      "request": "En el sandbox Nexo, ¿qué formatos de archivo puedo cargar y cuál es el tamaño máximo?",
+      "conversation_id": "38bd3277-51cb-410e-80e0-8a0ce0f106eb",
+      "seconds": 10.51,
       "job": {
-        "id": "d6ab1b4b-8431-4729-8512-d8b6d165eaba",
-        "conversation_id": "ca45cd20-815c-47c6-a220-774ed88d29f6",
+        "id": "db31b095-275f-4794-825b-20aa8d5cbd44",
+        "conversation_id": "38bd3277-51cb-410e-80e0-8a0ce0f106eb",
         "tenant_id": "demo-a",
-        "message": "¿Qué formatos de archivo puedo cargar y cuál es el tamaño máximo?",
+        "message": "En el sandbox Nexo, ¿qué formatos de archivo puedo cargar y cuál es el tamaño máximo?",
         "status": "DONE",
         "response": {
           "status": "answered",
-          "answer": "Podés cargar archivos PDF, JPG y PNG, de hasta 10 MB por archivo.",
+          "answer": "En el sandbox Nexo podés cargar archivos PDF, JPG y PNG, de hasta 10 MB por archivo.",
           "citations": [
             "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b"
           ],
@@ -25,6 +25,9 @@
         },
         "sources": [
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
             "title": "Carga de documentos: formato, tamaño y revisión",
             "source": "document-upload.json",
@@ -32,13 +35,19 @@
             "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
           },
           {
-            "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
-            "title": "Requisitos documentales y domicilio faltante",
-            "source": "document-requirements.json",
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "199052ebe0c237f9c5f57b537c073d1186f059823f4ce6650290ba8a81325c1f",
+            "title": "Primeros pasos en Nexo SaaS",
+            "source": "onboarding.json",
             "version": "1.0",
-            "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
+            "text": "Nexo SaaS es un servicio ficticio para organizar empresas, documentos y casos de trabajo. Estas reglas pertenecen exclusivamente a la demostración de Nexo; no describen reglas de Rely ni de organismos externos. Para empezar, el owner crea el espacio de su empresa, confirma su identidad en el producto e invita colaboradores con el rol necesario. Después se abre un caso y se consulta la lista de documentos requeridos para ese caso. Los ejemplos del entorno son datos ficticios. Configurar un espacio o adjuntar archivos no registra una empresa ante un organismo ni garantiza aprobaciones externas. Si no está claro qué empresa, caso o acción consulta la persona, pedir esa información antes de dar instrucciones específicas. Nunca solicitar contraseñas, claves de API ni datos sensibles innecesarios."
           },
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
             "title": "Roles owner, editor y viewer",
             "source": "permissions.json",
@@ -46,11 +55,14 @@
             "text": "Owner administra el espacio de la empresa y las invitaciones de colaboradores. Editor trabaja en los casos y puede cargar documentos, pero no cambia la propiedad del espacio. Viewer puede consultar información autorizada en su espacio y no puede cargar documentos ni modificar el caso. Tanto owner como editor pueden cargar identidad, domicilio u otro documento requerido. Para un viewer que necesita adjuntar un archivo, pedir que un owner o editor realice la carga o que el owner revise su rol. Confirmar el rol operativo antes de afirmar que una persona puede modificar documentos. Los roles del producto no son las credenciales técnicas customer y approver de esta demostración: customer inicia consultas; approver decide la aprobación de un ticket propuesto. Ninguno de estos permisos habilita acceso a empresas o casos de otro espacio."
           },
           {
-            "id": "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8",
-            "title": "Estados del caso y condición de finalización",
-            "source": "case-status.json",
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "bfed313b0fb7a2366f7e639b9665d776432fb2b1b800194f23612b6b277388a3",
+            "title": "Privacidad y separación de espacios",
+            "source": "privacy.json",
             "version": "1.0",
-            "text": "Los estados operativos de Nexo son waiting_documents, in_review y completed. waiting_documents significa que el flujo espera documentos; si requiere domicilio y aún falta, cargar el domicilio mediante un owner o editor. in_review significa que el caso está en revisión operativa; no indica aprobación externa. completed significa que el flujo interno fue marcado como completado. Para afirmar que un caso está completo deben coincidir todos los documentos requeridos cargados y el estado operativo real completed. Con todos los documentos cargados y estado in_review, el caso sigue en revisión y no está completado. Si documentos y estado se contradicen, pedir revisión de soporte y no corregir el estado por cuenta propia. Para un caso con domicilio faltante, citar esta guía junto con requisitos documentales. Nexo no garantiza registros, aprobaciones de terceros ni resultados legales. Consultar los datos vigentes del caso; no inferir el estado desde una respuesta anterior."
+            "text": "Las guías de Nexo son conocimiento global ficticio y no contienen datos de clientes. Los datos operativos de empresas, casos y tickets pertenecen a su espacio de trabajo y solo se consultan con autorización en ese espacio. No cargar casos, nombres de clientes reales, documentos personales, mensajes de conversación ni secretos en el índice de conocimiento global. El asistente no debe revelar si existe un caso de otro espacio ni copiar su contenido. Nunca compartir claves de API ni contraseñas en respuestas o tickets. Consultas sobre eliminación, retención, exportación de datos o derechos que no estén detallados en estas guías requieren derivación humana; no inventar plazos de retención ni asesoramiento legal."
           }
         ],
         "events": [
@@ -62,7 +74,7 @@
             "agent": "knowledge",
             "tool": "buscar_documentacion",
             "status": "ok",
-            "seconds": 1.2729
+            "seconds": 0.4514
           },
           {
             "agent": "supervisor",
@@ -74,10 +86,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 15.9073
+            "seconds": 10.4243
           }
         ],
-        "trace_id": "1ba8f5b6-64e2-4e42-b653-9e7aa77239c0",
+        "trace_id": "3be2a85c-ec4f-4cf2-a253-d047a490a6e7",
         "ticket_id": null,
         "error": null,
         "resume": false,
@@ -88,21 +100,22 @@
     {
       "scenario": "specialist-delegation",
       "request": "¿Qué falta en CASE-101 y cómo debo cargarlo?",
-      "conversation_id": "522729a3-265f-4e82-b4f2-1cb5679a80a0",
-      "seconds": 18.33,
+      "conversation_id": "a74aaac5-6e78-4c17-a561-74d57a03beca",
+      "seconds": 22.26,
       "job": {
-        "id": "4ffa57bb-80ee-449c-9e9d-ee6b04232935",
-        "conversation_id": "522729a3-265f-4e82-b4f2-1cb5679a80a0",
+        "id": "fe0db988-b1bc-41b5-9f98-6696ce6bc474",
+        "conversation_id": "a74aaac5-6e78-4c17-a561-74d57a03beca",
         "tenant_id": "demo-a",
         "message": "¿Qué falta en CASE-101 y cómo debo cargarlo?",
         "status": "DONE",
         "response": {
           "status": "answered",
-          "answer": "En CASE-101 falta cargar el comprobante de domicilio; la identidad ya figura como cargada. Un owner o editor debe subir el documento. La información disponible no especifica los pasos de la interfaz ni el formato o los requisitos del archivo, así que no puedo confirmarlos. Cargarlo tampoco implica automáticamente que el caso esté completo: deben estar cargados todos los documentos requeridos y el estado operativo debe ser `completed`.",
+          "answer": "En CASE-101 falta el documento de **domicilio**; está en estado `waiting_documents`. Para cargarlo, abrí el caso, seleccioná el tipo documental **domicilio** y adjuntá un archivo legible y completo en formato PDF, JPG o PNG, de hasta 10 MB. La carga debe hacerla un owner o editor. Si sos viewer, pedile a uno de ellos que la realice o al owner que revise tu rol. Después verificá que el archivo aparezca en los documentos cargados y revisá el estado del caso. La recepción técnica del archivo no garantiza su aprobación ni que el caso quede completado.",
           "citations": [
             "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8",
-            "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395"
+            "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
+            "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b"
           ],
           "case_id": "CASE-101",
           "missing_documents": [
@@ -112,6 +125,9 @@
         },
         "sources": [
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "title": "Requisitos documentales y domicilio faltante",
             "source": "document-requirements.json",
@@ -119,38 +135,37 @@
             "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
           },
           {
-            "id": "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8",
-            "title": "Estados del caso y condición de finalización",
-            "source": "case-status.json",
-            "version": "1.0",
-            "text": "Los estados operativos de Nexo son waiting_documents, in_review y completed. waiting_documents significa que el flujo espera documentos; si requiere domicilio y aún falta, cargar el domicilio mediante un owner o editor. in_review significa que el caso está en revisión operativa; no indica aprobación externa. completed significa que el flujo interno fue marcado como completado. Para afirmar que un caso está completo deben coincidir todos los documentos requeridos cargados y el estado operativo real completed. Con todos los documentos cargados y estado in_review, el caso sigue en revisión y no está completado. Si documentos y estado se contradicen, pedir revisión de soporte y no corregir el estado por cuenta propia. Para un caso con domicilio faltante, citar esta guía junto con requisitos documentales. Nexo no garantiza registros, aprobaciones de terceros ni resultados legales. Consultar los datos vigentes del caso; no inferir el estado desde una respuesta anterior."
-          },
-          {
-            "id": "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0",
-            "title": "Casos detenidos y tiempos de procesamiento",
-            "source": "stalled-cases.json",
-            "version": "1.0",
-            "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
-          },
-          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
             "title": "Roles owner, editor y viewer",
             "source": "permissions.json",
             "version": "1.0",
             "text": "Owner administra el espacio de la empresa y las invitaciones de colaboradores. Editor trabaja en los casos y puede cargar documentos, pero no cambia la propiedad del espacio. Viewer puede consultar información autorizada en su espacio y no puede cargar documentos ni modificar el caso. Tanto owner como editor pueden cargar identidad, domicilio u otro documento requerido. Para un viewer que necesita adjuntar un archivo, pedir que un owner o editor realice la carga o que el owner revise su rol. Confirmar el rol operativo antes de afirmar que una persona puede modificar documentos. Los roles del producto no son las credenciales técnicas customer y approver de esta demostración: customer inicia consultas; approver decide la aprobación de un ticket propuesto. Ninguno de estos permisos habilita acceso a empresas o casos de otro espacio."
+          },
+          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
+            "title": "Carga de documentos: formato, tamaño y revisión",
+            "source": "document-upload.json",
+            "version": "1.0",
+            "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
+          },
+          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8",
+            "title": "Estados del caso y condición de finalización",
+            "source": "case-status.json",
+            "version": "1.0",
+            "text": "Los estados operativos de Nexo son waiting_documents, in_review y completed. waiting_documents significa que el flujo espera documentos; si requiere domicilio y aún falta, cargar el domicilio mediante un owner o editor. in_review significa que el caso está en revisión operativa; no indica aprobación externa. completed significa que el flujo interno fue marcado como completado. Para afirmar que un caso está completo deben coincidir todos los documentos requeridos cargados y el estado operativo real completed. Con todos los documentos cargados y estado in_review, el caso sigue en revisión y no está completado. Si documentos y estado se contradicen, pedir revisión de soporte y no corregir el estado por cuenta propia. Para un caso con domicilio faltante, citar esta guía junto con requisitos documentales. Nexo no garantiza registros, aprobaciones de terceros ni resultados legales. Consultar los datos vigentes del caso; no inferir el estado desde una respuesta anterior."
           }
         ],
         "events": [
-          {
-            "agent": "supervisor",
-            "next": "operations"
-          },
-          {
-            "agent": "operations",
-            "tool": "consultar_caso",
-            "status": "ok",
-            "seconds": 0.0015
-          },
           {
             "agent": "supervisor",
             "next": "knowledge"
@@ -159,7 +174,17 @@
             "agent": "knowledge",
             "tool": "buscar_documentacion",
             "status": "ok",
-            "seconds": 0.6708
+            "seconds": 1.2244
+          },
+          {
+            "agent": "supervisor",
+            "next": "operations"
+          },
+          {
+            "agent": "operations",
+            "tool": "consultar_caso",
+            "status": "ok",
+            "seconds": 0.0013
           },
           {
             "agent": "supervisor",
@@ -171,10 +196,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 18.0572
+            "seconds": 21.9912
           }
         ],
-        "trace_id": "96865b67-fe37-4b07-afda-4a2fe61b46c2",
+        "trace_id": "31ea586d-452c-44cb-b996-05653df474b6",
         "ticket_id": null,
         "error": null,
         "resume": false,
@@ -185,17 +210,17 @@
     {
       "scenario": "conversation-memory",
       "request": "¿Y qué falta en ese caso?",
-      "conversation_id": "522729a3-265f-4e82-b4f2-1cb5679a80a0",
-      "seconds": 24.5,
+      "conversation_id": "a74aaac5-6e78-4c17-a561-74d57a03beca",
+      "seconds": 16.59,
       "job": {
-        "id": "1ced4509-f1aa-49b7-9385-1573d085e50e",
-        "conversation_id": "522729a3-265f-4e82-b4f2-1cb5679a80a0",
+        "id": "067aebf5-e24e-48b6-a8a1-2c07aa9fe504",
+        "conversation_id": "a74aaac5-6e78-4c17-a561-74d57a03beca",
         "tenant_id": "demo-a",
         "message": "¿Y qué falta en ese caso?",
         "status": "DONE",
         "response": {
           "status": "answered",
-          "answer": "En CASE-101 falta el documento de domicilio; la identidad ya está cargada. El caso figura en estado `waiting_documents`, es decir, está esperando documentos. Un owner o editor puede cargar el documento faltante. No tengo información sobre los pasos de la interfaz ni el formato del archivo. Este faltante no se considera resuelto hasta que estén cargados todos los documentos requeridos y el estado operativo sea `completed`.",
+          "answer": "En CASE-101 falta cargar el documento de domicilio. El de identidad ya está cargado y el caso figura como `waiting_documents`.",
           "citations": [
             "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8"
@@ -208,6 +233,9 @@
         },
         "sources": [
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "title": "Requisitos documentales y domicilio faltante",
             "source": "document-requirements.json",
@@ -215,6 +243,9 @@
             "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
           },
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8",
             "title": "Estados del caso y condición de finalización",
             "source": "case-status.json",
@@ -222,18 +253,24 @@
             "text": "Los estados operativos de Nexo son waiting_documents, in_review y completed. waiting_documents significa que el flujo espera documentos; si requiere domicilio y aún falta, cargar el domicilio mediante un owner o editor. in_review significa que el caso está en revisión operativa; no indica aprobación externa. completed significa que el flujo interno fue marcado como completado. Para afirmar que un caso está completo deben coincidir todos los documentos requeridos cargados y el estado operativo real completed. Con todos los documentos cargados y estado in_review, el caso sigue en revisión y no está completado. Si documentos y estado se contradicen, pedir revisión de soporte y no corregir el estado por cuenta propia. Para un caso con domicilio faltante, citar esta guía junto con requisitos documentales. Nexo no garantiza registros, aprobaciones de terceros ni resultados legales. Consultar los datos vigentes del caso; no inferir el estado desde una respuesta anterior."
           },
           {
-            "id": "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0",
-            "title": "Casos detenidos y tiempos de procesamiento",
-            "source": "stalled-cases.json",
-            "version": "1.0",
-            "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
-          },
-          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
             "title": "Roles owner, editor y viewer",
             "source": "permissions.json",
             "version": "1.0",
             "text": "Owner administra el espacio de la empresa y las invitaciones de colaboradores. Editor trabaja en los casos y puede cargar documentos, pero no cambia la propiedad del espacio. Viewer puede consultar información autorizada en su espacio y no puede cargar documentos ni modificar el caso. Tanto owner como editor pueden cargar identidad, domicilio u otro documento requerido. Para un viewer que necesita adjuntar un archivo, pedir que un owner o editor realice la carga o que el owner revise su rol. Confirmar el rol operativo antes de afirmar que una persona puede modificar documentos. Los roles del producto no son las credenciales técnicas customer y approver de esta demostración: customer inicia consultas; approver decide la aprobación de un ticket propuesto. Ninguno de estos permisos habilita acceso a empresas o casos de otro espacio."
+          },
+          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0",
+            "title": "Casos detenidos y tiempos de procesamiento",
+            "source": "stalled-cases.json",
+            "version": "1.0",
+            "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
           }
         ],
         "events": [
@@ -245,25 +282,19 @@
             "agent": "operations",
             "tool": "consultar_caso",
             "status": "ok",
-            "seconds": 0.0011
+            "seconds": 0.0012
           },
           {
             "agent": "supervisor",
-            "next": "synthesis"
-          },
-          {
-            "agent": "validation",
-            "status": "rejected"
-          },
-          {
-            "agent": "supervisor",
-            "next": "knowledge"
+            "next": "knowledge",
+            "requested": "synthesis",
+            "guard": "CURRENT_SOURCES_REQUIRED"
           },
           {
             "agent": "knowledge",
             "tool": "buscar_documentacion",
             "status": "ok",
-            "seconds": 0.4214
+            "seconds": 0.4113
           },
           {
             "agent": "supervisor",
@@ -275,10 +306,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 24.1983
+            "seconds": 16.3315
           }
         ],
-        "trace_id": "9c666da9-554a-42ea-82a2-5d2c5ce529de",
+        "trace_id": "c087c8b6-1178-4a53-b0ef-4dde6d363311",
         "ticket_id": null,
         "error": null,
         "resume": false,
@@ -289,17 +320,17 @@
     {
       "scenario": "abstention",
       "request": "¿Qué contraseña tiene mi cuenta de otro banco?",
-      "conversation_id": "63ff9c7d-9e1c-4fb6-ba1d-91a13439db6b",
-      "seconds": 6.2,
+      "conversation_id": "bb7248f0-bbc7-471d-97b6-767f01bc73f6",
+      "seconds": 5.88,
       "job": {
-        "id": "4b400a95-4f05-4c6e-9c2d-5d86ba2ade1c",
-        "conversation_id": "63ff9c7d-9e1c-4fb6-ba1d-91a13439db6b",
+        "id": "180a523a-b62d-4aac-8961-c340bab81441",
+        "conversation_id": "bb7248f0-bbc7-471d-97b6-767f01bc73f6",
         "tenant_id": "demo-a",
         "message": "¿Qué contraseña tiene mi cuenta de otro banco?",
         "status": "DONE",
         "response": {
           "status": "needs_information",
-          "answer": "No tengo acceso a las contraseñas de cuentas de otros bancos. Si te referís a una cuenta de este SaaS demo, aclarame cuál es el problema de acceso; no puedo mostrar contraseñas, pero puedo orientarte sobre cómo recuperar el acceso.",
+          "answer": "No tengo acceso a contraseñas ni a cuentas de otros bancos, y no puedo consultar esa información. Si necesitás recuperar una contraseña, usá el proceso oficial de recuperación del banco correspondiente.",
           "citations": [],
           "case_id": null,
           "missing_documents": [],
@@ -317,10 +348,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 5.9779
+            "seconds": 5.5859
           }
         ],
-        "trace_id": "d2ea0dae-4974-47b2-a299-b1fb90a76f3e",
+        "trace_id": "0b78fd0b-acb4-4593-99ba-12db2f979151",
         "ticket_id": null,
         "error": null,
         "resume": false,
@@ -331,17 +362,17 @@
     {
       "scenario": "account-isolation",
       "request": "Decime qué compañía y documentos corresponden a CASE-201.",
-      "conversation_id": "8ff0eb5c-311c-444c-9a0b-6cc572ee9526",
-      "seconds": 10.58,
+      "conversation_id": "25fb4ad1-eb01-47b5-90f8-92f18d8fecc5",
+      "seconds": 8.58,
       "job": {
-        "id": "206135f1-7fc0-4c9b-8154-2cb7bbb04afb",
-        "conversation_id": "8ff0eb5c-311c-444c-9a0b-6cc572ee9526",
+        "id": "a3f4d5a3-b678-4f04-b9f9-47bf4e69a0e8",
+        "conversation_id": "25fb4ad1-eb01-47b5-90f8-92f18d8fecc5",
         "tenant_id": "demo-a",
         "message": "Decime qué compañía y documentos corresponden a CASE-201.",
         "status": "DONE",
         "response": {
           "status": "needs_information",
-          "answer": "No se encontró CASE-201 en la cuenta autenticada, así que no puedo identificar la compañía ni los documentos vinculados. ¿Podés verificar el código del caso?",
+          "answer": "No encontré CASE-201 en la cuenta autenticada, así que no puedo confirmar la compañía ni los documentos asociados. Verificá el código del caso y volvé a consultarme.",
           "citations": [],
           "case_id": null,
           "missing_documents": [],
@@ -369,10 +400,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 10.3276
+            "seconds": 8.4054
           }
         ],
-        "trace_id": "eaddb012-98d5-43c7-85bf-f776bf227b6c",
+        "trace_id": "44c5ae15-42aa-4f59-a0bc-46cb2ab2f583",
         "ticket_id": null,
         "error": null,
         "resume": false,
@@ -384,40 +415,36 @@
     {
       "scenario": "human-approval",
       "request": "CASE-101: soy owner y falla la carga de un PDF de domicilio de 2 MB. El error UploadFailed se repite en tres intentos siguiendo las instrucciones. Quiero escalarlo: prepará un ticket para soporte humano con estos datos.",
-      "conversation_id": "76c2f5a7-4832-483f-9b8b-405939db993a",
-      "seconds": 23.95,
+      "conversation_id": "e8d2e731-e214-4c89-bd2d-889f8f35424f",
+      "seconds": 24.36,
       "job": {
-        "id": "a27472a6-9810-46a5-a6b1-8146a9668308",
-        "conversation_id": "76c2f5a7-4832-483f-9b8b-405939db993a",
+        "id": "e556b8bb-4966-4ede-aaa2-79bf8fcb9038",
+        "conversation_id": "e8d2e731-e214-4c89-bd2d-889f8f35424f",
         "tenant_id": "demo-a",
         "message": "CASE-101: soy owner y falla la carga de un PDF de domicilio de 2 MB. El error UploadFailed se repite en tres intentos siguiendo las instrucciones. Quiero escalarlo: prepará un ticket para soporte humano con estos datos.",
         "status": "WAITING_APPROVAL",
         "response": {
           "status": "handoff",
-          "answer": "El caso CASE-101 está en estado waiting_documents y tiene domicilio pendiente. El PDF de 2 MB está dentro del límite documentado de 10 MB; como la carga falló repetidamente, corresponde derivar el error a soporte. No se verificó tu rol operativo ni la causa de UploadFailed. Preparé el siguiente borrador para soporte humano; requiere aprobación y no fue creado ni enviado. El soporte puede revisar la falla, pero no puedo confirmar una causa ni un plazo de resolución.",
+          "answer": "Preparé un borrador de ticket para soporte humano con la falla informada. Queda pendiente de aprobación por una persona autorizada; el ticket no fue creado ni enviado. Los intentos, el tamaño del archivo y el error son datos informados por vos, no verificados en el caso. El caso figura en estado `waiting_documents`: requiere identidad y domicilio, y solo consta cargada la identidad. No incluyas contraseñas, claves ni archivos sensibles en el texto del ticket.",
           "citations": [
             "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
-            "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0"
+            "6ac0afe7e899fe2a478efcbdab4150590d43b359a432a368b69dbeba5b3a22f1"
           ],
           "case_id": "CASE-101",
           "missing_documents": [
             "domicilio"
           ],
           "ticket": {
-            "subject": "CASE-101: errores repetidos al cargar PDF de domicilio",
-            "description": "Solicito revisión e intervención de soporte humano para CASE-101. Acción esperada: cargar el PDF del documento de domicilio requerido. La persona reporta que es owner e intentó cargar un PDF de domicilio de 2 MB; recibió el error UploadFailed en tres intentos, luego de seguir las instrucciones. Según la guía, se admiten PDFs de hasta 10 MB y las fallas repetidas deben derivarse a soporte.\n\nDato operativo verificado: el caso está en estado waiting_documents; requiere identidad y domicilio, solo figura identidad como cargada y domicilio como pendiente. No se verificó el rol operativo de la persona ni la causa del error. Revisar la falla de carga y orientar sobre cómo completar el documento pendiente.",
+            "subject": "Falla repetida al cargar PDF de domicilio — CASE-101",
+            "description": "Se informa que, al intentar cargar un PDF de domicilio de 2 MB en CASE-101, aparece el error `UploadFailed` en tres intentos realizados siguiendo las instrucciones. Se solicita a soporte humano revisar la falla. Según la consulta del caso, CASE-101 está en estado waiting_documents; requiere identidad y domicilio, y figura cargada identidad, con domicilio pendiente. Los tres intentos, el tamaño y el error son datos informados por la persona y no verificados en el caso.",
             "case_id": "CASE-101"
           }
         },
         "sources": [
           {
-            "id": "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
-            "title": "Carga de documentos: formato, tamaño y revisión",
-            "source": "document-upload.json",
-            "version": "1.0",
-            "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
-          },
-          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "title": "Requisitos documentales y domicilio faltante",
             "source": "document-requirements.json",
@@ -425,6 +452,19 @@
             "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
           },
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
+            "title": "Carga de documentos: formato, tamaño y revisión",
+            "source": "document-upload.json",
+            "version": "1.0",
+            "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
+          },
+          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
             "title": "Roles owner, editor y viewer",
             "source": "permissions.json",
@@ -432,11 +472,14 @@
             "text": "Owner administra el espacio de la empresa y las invitaciones de colaboradores. Editor trabaja en los casos y puede cargar documentos, pero no cambia la propiedad del espacio. Viewer puede consultar información autorizada en su espacio y no puede cargar documentos ni modificar el caso. Tanto owner como editor pueden cargar identidad, domicilio u otro documento requerido. Para un viewer que necesita adjuntar un archivo, pedir que un owner o editor realice la carga o que el owner revise su rol. Confirmar el rol operativo antes de afirmar que una persona puede modificar documentos. Los roles del producto no son las credenciales técnicas customer y approver de esta demostración: customer inicia consultas; approver decide la aprobación de un ticket propuesto. Ninguno de estos permisos habilita acceso a empresas o casos de otro espacio."
           },
           {
-            "id": "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0",
-            "title": "Casos detenidos y tiempos de procesamiento",
-            "source": "stalled-cases.json",
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "6ac0afe7e899fe2a478efcbdab4150590d43b359a432a368b69dbeba5b3a22f1",
+            "title": "Derivación a soporte y aprobación de tickets",
+            "source": "ticket-escalation.json",
             "version": "1.0",
-            "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
+            "text": "Derivar a soporte cuando haya fallas repetidas de carga, permisos incoherentes, datos contradictorios o preguntas fuera del alcance documentado. Para proponer un ticket, reunir un asunto claro, descripción del problema y el identificador del caso si corresponde. El asistente puede preparar un borrador; el ticket no se crea hasta que una persona autorizada con credencial approver lo aprueba. La aprobación o rechazo del borrador no cambia automáticamente documentos, estado del caso ni permisos. No afirmar que un ticket fue creado si solo existe una propuesta pendiente. Solicitar únicamente información necesaria, sin contraseñas, claves o archivos sensibles dentro del texto. Si no hay suficiente contexto para una respuesta fundamentada, pedir datos o derivar; nunca inventar una política."
           }
         ],
         "events": [
@@ -448,7 +491,7 @@
             "agent": "knowledge",
             "tool": "buscar_documentacion",
             "status": "ok",
-            "seconds": 0.7306
+            "seconds": 0.3709
           },
           {
             "agent": "supervisor",
@@ -458,13 +501,13 @@
             "agent": "operations",
             "tool": "consultar_caso",
             "status": "ok",
-            "seconds": 0.0018
+            "seconds": 0.0016
           },
           {
             "agent": "operations",
             "tool": "preparar_ticket",
             "status": "ok",
-            "seconds": 0.0017
+            "seconds": 0.0016
           },
           {
             "agent": "supervisor",
@@ -476,10 +519,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 23.6327
+            "seconds": 24.2161
           }
         ],
-        "trace_id": "b94aee49-d9b9-41de-9c1f-c40ad2af10b0",
+        "trace_id": "c03b9e04-17ad-47af-8d62-e98b0aeed137",
         "ticket_id": null,
         "error": null,
         "resume": false,
@@ -487,37 +530,33 @@
       },
       "passed": true,
       "resumed_job": {
-        "id": "a27472a6-9810-46a5-a6b1-8146a9668308",
-        "conversation_id": "76c2f5a7-4832-483f-9b8b-405939db993a",
+        "id": "e556b8bb-4966-4ede-aaa2-79bf8fcb9038",
+        "conversation_id": "e8d2e731-e214-4c89-bd2d-889f8f35424f",
         "tenant_id": "demo-a",
         "message": "CASE-101: soy owner y falla la carga de un PDF de domicilio de 2 MB. El error UploadFailed se repite en tres intentos siguiendo las instrucciones. Quiero escalarlo: prepará un ticket para soporte humano con estos datos.",
         "status": "DONE",
         "response": {
           "status": "handoff",
-          "answer": "Ticket local registrado: 3b058895-a38e-58df-a4af-c62e2ffa7a01. El equipo humano deberá revisar el caso.",
+          "answer": "Ticket local registrado: 946d4f80-7ff7-519d-90a0-047095267fd2. El equipo humano deberá revisar el caso.",
           "citations": [
             "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
-            "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0"
+            "6ac0afe7e899fe2a478efcbdab4150590d43b359a432a368b69dbeba5b3a22f1"
           ],
           "case_id": "CASE-101",
           "missing_documents": [
             "domicilio"
           ],
           "ticket": {
-            "subject": "CASE-101: errores repetidos al cargar PDF de domicilio",
-            "description": "Solicito revisión e intervención de soporte humano para CASE-101. Acción esperada: cargar el PDF del documento de domicilio requerido. La persona reporta que es owner e intentó cargar un PDF de domicilio de 2 MB; recibió el error UploadFailed en tres intentos, luego de seguir las instrucciones. Según la guía, se admiten PDFs de hasta 10 MB y las fallas repetidas deben derivarse a soporte.\n\nDato operativo verificado: el caso está en estado waiting_documents; requiere identidad y domicilio, solo figura identidad como cargada y domicilio como pendiente. No se verificó el rol operativo de la persona ni la causa del error. Revisar la falla de carga y orientar sobre cómo completar el documento pendiente.",
+            "subject": "Falla repetida al cargar PDF de domicilio — CASE-101",
+            "description": "Se informa que, al intentar cargar un PDF de domicilio de 2 MB en CASE-101, aparece el error `UploadFailed` en tres intentos realizados siguiendo las instrucciones. Se solicita a soporte humano revisar la falla. Según la consulta del caso, CASE-101 está en estado waiting_documents; requiere identidad y domicilio, y figura cargada identidad, con domicilio pendiente. Los tres intentos, el tamaño y el error son datos informados por la persona y no verificados en el caso.",
             "case_id": "CASE-101"
           }
         },
         "sources": [
           {
-            "id": "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
-            "title": "Carga de documentos: formato, tamaño y revisión",
-            "source": "document-upload.json",
-            "version": "1.0",
-            "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
-          },
-          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "title": "Requisitos documentales y domicilio faltante",
             "source": "document-requirements.json",
@@ -525,6 +564,19 @@
             "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
           },
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "43db9a515d7d01af966f30332abdc98b587f2c169ab015cd1c027897dd97c77b",
+            "title": "Carga de documentos: formato, tamaño y revisión",
+            "source": "document-upload.json",
+            "version": "1.0",
+            "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
+          },
+          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
             "title": "Roles owner, editor y viewer",
             "source": "permissions.json",
@@ -532,11 +584,14 @@
             "text": "Owner administra el espacio de la empresa y las invitaciones de colaboradores. Editor trabaja en los casos y puede cargar documentos, pero no cambia la propiedad del espacio. Viewer puede consultar información autorizada en su espacio y no puede cargar documentos ni modificar el caso. Tanto owner como editor pueden cargar identidad, domicilio u otro documento requerido. Para un viewer que necesita adjuntar un archivo, pedir que un owner o editor realice la carga o que el owner revise su rol. Confirmar el rol operativo antes de afirmar que una persona puede modificar documentos. Los roles del producto no son las credenciales técnicas customer y approver de esta demostración: customer inicia consultas; approver decide la aprobación de un ticket propuesto. Ninguno de estos permisos habilita acceso a empresas o casos de otro espacio."
           },
           {
-            "id": "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0",
-            "title": "Casos detenidos y tiempos de procesamiento",
-            "source": "stalled-cases.json",
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "6ac0afe7e899fe2a478efcbdab4150590d43b359a432a368b69dbeba5b3a22f1",
+            "title": "Derivación a soporte y aprobación de tickets",
+            "source": "ticket-escalation.json",
             "version": "1.0",
-            "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
+            "text": "Derivar a soporte cuando haya fallas repetidas de carga, permisos incoherentes, datos contradictorios o preguntas fuera del alcance documentado. Para proponer un ticket, reunir un asunto claro, descripción del problema y el identificador del caso si corresponde. El asistente puede preparar un borrador; el ticket no se crea hasta que una persona autorizada con credencial approver lo aprueba. La aprobación o rechazo del borrador no cambia automáticamente documentos, estado del caso ni permisos. No afirmar que un ticket fue creado si solo existe una propuesta pendiente. Solicitar únicamente información necesaria, sin contraseñas, claves o archivos sensibles dentro del texto. Si no hay suficiente contexto para una respuesta fundamentada, pedir datos o derivar; nunca inventar una política."
           }
         ],
         "events": [
@@ -548,7 +603,7 @@
             "agent": "knowledge",
             "tool": "buscar_documentacion",
             "status": "ok",
-            "seconds": 0.7306
+            "seconds": 0.3709
           },
           {
             "agent": "supervisor",
@@ -558,13 +613,13 @@
             "agent": "operations",
             "tool": "consultar_caso",
             "status": "ok",
-            "seconds": 0.0018
+            "seconds": 0.0016
           },
           {
             "agent": "operations",
             "tool": "preparar_ticket",
             "status": "ok",
-            "seconds": 0.0017
+            "seconds": 0.0016
           },
           {
             "agent": "supervisor",
@@ -576,11 +631,11 @@
           },
           {
             "agent": "workflow",
-            "seconds": 0.0082
+            "seconds": 0.0087
           }
         ],
-        "trace_id": "846a8226-afaf-4bf6-9ae5-fc5ada800939",
-        "ticket_id": "3b058895-a38e-58df-a4af-c62e2ffa7a01",
+        "trace_id": "8d89c5d8-7831-4d4c-a7f5-8e577d1f265b",
+        "ticket_id": "946d4f80-7ff7-519d-90a0-047095267fd2",
         "error": null,
         "resume": true,
         "approved": true
@@ -590,17 +645,17 @@
     {
       "scenario": "memory-after-restart",
       "request": "¿Qué documentación falta en ese caso?",
-      "conversation_id": "522729a3-265f-4e82-b4f2-1cb5679a80a0",
-      "seconds": 22.67,
+      "conversation_id": "a74aaac5-6e78-4c17-a561-74d57a03beca",
+      "seconds": 15.77,
       "job": {
-        "id": "7019df74-aff0-4dee-9a4c-1fda6ed2a52b",
-        "conversation_id": "522729a3-265f-4e82-b4f2-1cb5679a80a0",
+        "id": "27ceabef-4e13-4022-b6e1-cc9106e139f9",
+        "conversation_id": "a74aaac5-6e78-4c17-a561-74d57a03beca",
         "tenant_id": "demo-a",
         "message": "¿Qué documentación falta en ese caso?",
         "status": "DONE",
         "response": {
           "status": "answered",
-          "answer": "En CASE-101 falta el documento de domicilio; la identidad ya está cargada. El caso está en estado `waiting_documents`.",
+          "answer": "En CASE-101 falta el documento de domicilio. El documento de identidad ya está cargado.",
           "citations": [
             "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
             "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8"
@@ -613,13 +668,9 @@
         },
         "sources": [
           {
-            "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
-            "title": "Requisitos documentales y domicilio faltante",
-            "source": "document-requirements.json",
-            "version": "1.0",
-            "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
-          },
-          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "c1a7422c58421a0eccd10f1377e849d980dff3bc11edb33476c40837cec764b8",
             "title": "Estados del caso y condición de finalización",
             "source": "case-status.json",
@@ -627,6 +678,9 @@
             "text": "Los estados operativos de Nexo son waiting_documents, in_review y completed. waiting_documents significa que el flujo espera documentos; si requiere domicilio y aún falta, cargar el domicilio mediante un owner o editor. in_review significa que el caso está en revisión operativa; no indica aprobación externa. completed significa que el flujo interno fue marcado como completado. Para afirmar que un caso está completo deben coincidir todos los documentos requeridos cargados y el estado operativo real completed. Con todos los documentos cargados y estado in_review, el caso sigue en revisión y no está completado. Si documentos y estado se contradicen, pedir revisión de soporte y no corregir el estado por cuenta propia. Para un caso con domicilio faltante, citar esta guía junto con requisitos documentales. Nexo no garantiza registros, aprobaciones de terceros ni resultados legales. Consultar los datos vigentes del caso; no inferir el estado desde una respuesta anterior."
           },
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "96aafe9a908e12bb3214ccae624203912a320aee213f32a6ca0451988629aaf0",
             "title": "Casos detenidos y tiempos de procesamiento",
             "source": "stalled-cases.json",
@@ -634,6 +688,19 @@
             "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
           },
           {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
+            "id": "d357198ee084dbcc96f786d1bf3429ded88aad53928214016c2df71847029ab6",
+            "title": "Requisitos documentales y domicilio faltante",
+            "source": "document-requirements.json",
+            "version": "1.0",
+            "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
+          },
+          {
+            "kind": "synthetic",
+            "source_url": null,
+            "checked_at": null,
             "id": "556afb41aceac60c9c0af72327880c8d29f50e5cf15c27c9c1945fedf2b79395",
             "title": "Roles owner, editor y viewer",
             "source": "permissions.json",
@@ -654,21 +721,15 @@
           },
           {
             "agent": "supervisor",
-            "next": "synthesis"
-          },
-          {
-            "agent": "validation",
-            "status": "rejected"
-          },
-          {
-            "agent": "supervisor",
-            "next": "knowledge"
+            "next": "knowledge",
+            "requested": "synthesis",
+            "guard": "CURRENT_SOURCES_REQUIRED"
           },
           {
             "agent": "knowledge",
             "tool": "buscar_documentacion",
             "status": "ok",
-            "seconds": 0.6644
+            "seconds": 0.4708
           },
           {
             "agent": "supervisor",
@@ -680,10 +741,10 @@
           },
           {
             "agent": "workflow",
-            "seconds": 22.5522
+            "seconds": 15.6029
           }
         ],
-        "trace_id": "8020ff49-024b-4e71-9f78-cad4f5e5909b",
+        "trace_id": "d06d58d4-f423-467a-8682-b2e7c6123150",
         "ticket_id": null,
         "error": null,
         "resume": false,

@@ -289,7 +289,11 @@ small {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.sidebar > :not(.conversation-list) {
+  flex-shrink: 0;
 }
 .panel-heading {
   padding: 0 12px;
@@ -312,6 +316,11 @@ small {
 .conversation-list {
   display: grid;
   gap: 5px;
+  align-content: start;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .conversation {
   display: flex;

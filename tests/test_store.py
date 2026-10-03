@@ -110,3 +110,39 @@ async def test_ticket_is_visible_even_if_execution_fails_after_creation(store, f
     assert failed.error == "TICKET_CREATED_EXECUTION_INCOMPLETE"
     assert failed.ticket_id == ticket.id
     assert (await store.get_ticket(failed.ticket_id, "demo-a")).id == ticket.id
+
+
+async def test_history_keeps_order_and_lists_are_bounded(store):
+    conversations = [await store.create_conversation("demo-a") for _ in range(52)]
+    listed = await store.list_conversations("demo-a")
+    assert len(listed) == 50
+    assert listed[0].id == conversations[-1].id
+    assert conversations[0].id not in {item.id for item in listed}
+    conversation = conversations[-1]
+    jobs = []
+    for number in range(103):
+        job = await store.submit(conversation.id, "demo-a", f"Consulta {number}")
+        claimed = await store.claim(30)
+        await store.finish(claimed.model_copy(update={"status": "DONE"}))
+        jobs.append(job)
+    history = await store.list_conversation_jobs(conversation.id, "demo-a")
+    assert [item.id for item in history] == [item.id for item in jobs[-100:]]
+    assert (await store.list_conversations("demo-a"))[0].title == "Consulta 0"
+    with pytest.raises(NotFound):
+        await store.list_conversation_jobs(conversation.id, "demo-b")
+
+
+async def test_concurrent_approval_removes_inbox_once(store):
+    conversation = await store.create_conversation("demo-a")
+    await store.submit(conversation.id, "demo-a", "Ticket")
+    job = await store.claim(30)
+    await store.finish(job.model_copy(update={"status": "WAITING_APPROVAL"}))
+    assert [item.id for item in await store.list_approvals("demo-a")] == [job.id]
+    await asyncio.gather(
+        store.approve(job.id, "demo-a", True),
+        store.approve(job.id, "demo-a", False),
+        return_exceptions=True,
+    )
+    assert await store.list_approvals("demo-a") == []
+    assert (await store.claim(30)).id == job.id
+    assert await store.claim(30) is None

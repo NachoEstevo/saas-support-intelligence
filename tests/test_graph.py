@@ -16,6 +16,7 @@ from openai import (
 )
 from pydantic import ValidationError
 
+from app.agents import run_specialist
 from app.config import BASE_DIR
 from app.graph import build_graph
 from app.persistence import open_checkpointer
@@ -35,10 +36,12 @@ from tests.fakes import (
 pytestmark = pytest.mark.integration
 
 
-async def run_job(store, settings, saver, model, conversation=None, message="Ver CASE-101"):
+async def run_job(
+    store, settings, saver, model, conversation=None, message="Ver CASE-101", retriever=None
+):
     support = SupportService(store)
     await support.seed(BASE_DIR / "data" / "cases.json")
-    graph = build_graph(model, FakeRetriever(), support, store, saver)
+    graph = build_graph(model, retriever or FakeRetriever(), support, store, saver)
     conversation = conversation or await store.create_conversation("demo-a")
     submitted = await store.submit(conversation.id, "demo-a", message)
     job = await store.claim(settings.job_timeout_seconds)
@@ -63,6 +66,27 @@ async def test_delegation_calls_both_specialists_and_validates(store, settings, 
     assert job.trace_id is not None
     state = await graph.aget_state({"configurable": {"thread_id": f"demo-a:{conversation.id}"}})
     assert state.values["contributions"]["operations"].case_result.case.tenant_id == "demo-a"
+
+
+async def test_specialist_does_not_overwrite_one_case_with_another_in_the_same_turn(store):
+    service = SupportService(store)
+    await service.seed(BASE_DIR / "data" / "cases.json")
+    model = ScriptedModel(
+        [],
+        [
+            call("consultar_caso", case_id="CASE-101"),
+            call("consultar_caso", case_id="CASE-102"),
+            AIMessage("Necesito elegir un caso."),
+        ],
+    )
+    contribution = await run_specialist(
+        model, "operations", service.tools("demo-a"), "Comparar casos", {}
+    )
+    assert contribution.case_result.case.case_id == "CASE-101"
+    assert contribution.case_result.missing_documents == ["domicilio"]
+    assert contribution.events[-1]["status"] == "error"
+    tool_results = [message.content for message in model.inputs[-1] if message.type == "tool"]
+    assert any("ONE_CASE_PER_TURN" in result for result in tool_results)
 
 
 async def test_checkpoint_survives_a_new_saver_and_graph(store, settings):
@@ -102,6 +126,127 @@ async def test_invalid_citations_refine_once_then_fail_closed(store, settings, s
     assert job.response.status == "needs_information"
     assert not job.response.citations
     assert sum(event.get("status") == "rejected" for event in job.events) == 2
+
+
+async def test_refinement_exposes_rejected_response_and_routes_to_supervisor(
+    store, settings, saver
+):
+    invalid = case_response().model_copy(update={"citations": []})
+    model = ScriptedModel(
+        ["knowledge", "operations", "synthesis", "synthesis"],
+        [*knowledge_messages(), *case_messages()],
+        [invalid, case_response()],
+    )
+    job, _, _ = await run_job(store, settings, saver, model)
+    assert job.response.status == "answered"
+    contexts = [
+        json.loads(messages[-1].content)
+        for messages in model.inputs
+        if messages[0].content.startswith("Sos Supervisor")
+    ]
+    rejected = contexts[3]
+    assert rejected["response"]["citations"] == []
+    assert rejected["routing_history"] == ["knowledge", "operations", "synthesis"]
+    assert rejected["decisions_remaining"] == 5
+    final = contexts[-1]
+    assert final["contributions"]["knowledge"]["sources"]
+    rejected_event = next(event for event in job.events if event.get("status") == "rejected")
+    assert rejected_event["reason"] == "La respuesta requiere evidencia documental citada."
+
+
+async def test_supervisor_requires_current_sources_before_synthesizing_a_verified_case(
+    store, settings, saver
+):
+    model = ScriptedModel(
+        ["operations", "synthesis", "synthesis"],
+        [*case_messages(), *knowledge_messages()],
+        [case_response()],
+    )
+    job, _, _ = await run_job(store, settings, saver, model)
+    assert job.status == "DONE"
+    assert job.response.status == "answered"
+    guarded = next(event for event in job.events if event.get("guard"))
+    assert guarded["requested"] == "synthesis"
+    assert guarded["next"] == "knowledge"
+    assert guarded["guard"] == "CURRENT_SOURCES_REQUIRED"
+    assert [event["tool"] for event in job.events if "tool" in event] == [
+        "consultar_caso",
+        "buscar_documentacion",
+    ]
+
+
+@pytest.mark.parametrize("handoff", [False, True])
+async def test_empty_current_retrieval_allows_safe_clarification_or_prepared_handoff(
+    store, settings, saver, handoff
+):
+    class EmptyRetriever(FakeRetriever):
+        async def search(self, query):
+            return []
+
+    draft = TicketDraft(
+        subject="Carga fallida",
+        description="El usuario reporta error de carga.",
+        case_id="CASE-101",
+    )
+    operations = case_messages()
+    if handoff:
+        operations = [
+            call("consultar_caso", case_id="CASE-101"),
+            call("preparar_ticket", **draft.model_dump()),
+            AIMessage("Borrador preparado"),
+        ]
+    response = SupportResponse(
+        status="handoff" if handoff else "needs_information",
+        answer="Necesito revisión humana; no encontré documentación aplicable.",
+        case_id="CASE-101" if handoff else None,
+        missing_documents=["domicilio"] if handoff else [],
+        ticket=draft if handoff else None,
+    )
+    model = ScriptedModel(
+        ["operations", "synthesis", "synthesis"],
+        [*operations, *knowledge_messages()],
+        [response],
+    )
+    job, _, _ = await run_job(store, settings, saver, model, retriever=EmptyRetriever())
+    assert job.status == ("WAITING_APPROVAL" if handoff else "DONE")
+    assert job.response.status == response.status
+    assert job.ticket_id is None
+    assert sum(event.get("tool") == "buscar_documentacion" for event in job.events) == 1
+
+
+async def test_two_operations_visits_cannot_overwrite_the_current_turn_case(store, settings, saver):
+    model = ScriptedModel(
+        ["knowledge", "operations", "operations", "synthesis"],
+        [*knowledge_messages(), *case_messages(), *case_messages("CASE-102")],
+        [case_response()],
+    )
+    job, _, _ = await run_job(store, settings, saver, model)
+    assert job.status == "DONE"
+    assert job.response.case_id == "CASE-101"
+    assert job.response.missing_documents == ["domicilio"]
+    assert [event["status"] for event in job.events if event.get("tool") == "consultar_caso"] == [
+        "ok",
+        "error",
+    ]
+
+
+async def test_case_can_change_in_the_next_user_turn(store, settings, saver):
+    first = ScriptedModel(
+        ["knowledge", "operations", "synthesis"],
+        [*knowledge_messages(), *case_messages()],
+        [case_response()],
+    )
+    job, conversation, _ = await run_job(store, settings, saver, first)
+    assert job.response.case_id == "CASE-101"
+    second = ScriptedModel(
+        ["knowledge", "operations", "synthesis"],
+        [*knowledge_messages(), *case_messages("CASE-102")],
+        [case_response().model_copy(update={"case_id": "CASE-102", "missing_documents": []})],
+    )
+    job, _, _ = await run_job(store, settings, saver, second, conversation, "Ahora CASE-102")
+    assert job.status == "DONE"
+    assert job.response.case_id == "CASE-102"
+    assert job.response.missing_documents == []
 
 
 async def test_unbounded_supervisor_is_stopped(store, settings, saver):

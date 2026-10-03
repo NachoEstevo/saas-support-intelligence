@@ -410,9 +410,10 @@ async def test_foreign_vector_rows_cannot_consume_candidate_window(retriever):
     assert [source.id for source in sources] == known_ids
 
 
-def test_global_corpus_has_nine_original_guides_and_no_case_data():
+def test_global_corpus_separates_public_guides_from_synthetic_policies_and_case_data():
     chunks, _ = load_corpus(CORPUS_DIR)
-    assert len({chunk.source for chunk in chunks}) == 9
+    assert len({chunk.source for chunk in chunks if chunk.kind == "synthetic"}) == 9
+    assert len({chunk.source for chunk in chunks if chunk.kind == "public"}) == 3
     text = " ".join(chunk.text for chunk in chunks)
     assert "CASE-101" not in text
     assert "Alba Demo" not in text

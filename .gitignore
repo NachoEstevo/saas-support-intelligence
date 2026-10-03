@@ -15,3 +15,9 @@ plans/
 PLAN.md
 *plan*.md
 *report*.md
+node_modules/
+web/dist/
+web/coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo

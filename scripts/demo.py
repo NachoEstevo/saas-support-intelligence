@@ -90,7 +90,8 @@ async def demo(settings: DemoSettings, *, restart_api: bool = False) -> dict:
             return record
 
         general = await run(
-            "documented-answer", "¿Qué formatos de archivo puedo cargar y cuál es el tamaño máximo?"
+            "documented-answer",
+            "En el sandbox Nexo, ¿qué formatos de archivo puedo cargar y cuál es el tamaño máximo?",
         )
         general["passed"] = (
             general["job"]["status"] == "DONE"

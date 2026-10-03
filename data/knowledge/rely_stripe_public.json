@@ -1,0 +1,8 @@
+{
+  "title": "Rely: coherencia documental para Stripe (fuente pública)",
+  "version": "public-2026-10-03",
+  "kind": "public",
+  "source_url": "https://blog.rely.business/como-configurar-stripe-con-tu-llc",
+  "checked_at": "2026-10-03",
+  "text": "Resumen del artículo público de Rely sobre Stripe, actualizado el 29 de julio de 2026 y consultado el 3 de octubre de 2026. Tener una LLC no habilita Stripe automáticamente. Diferencias de nombres o direcciones entre documentos de la empresa, EIN y cuenta bancaria, o documentación incompleta, pueden causar fricción de verificación. Hay que revisar los datos solicitados en el flujo vigente de Stripe y su documentación oficial. Rely ayuda con la formación y documentación de la compañía; Stripe y el banco conservan decisiones independientes sobre elegibilidad y aprobación. Este resumen no certifica requisitos de un cliente concreto, plazos de aprobación ni resultados. La demo no abre cuentas, no hace pagos y no sustituye asesoramiento profesional."
+}

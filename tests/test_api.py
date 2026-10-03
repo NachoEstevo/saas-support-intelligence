@@ -161,3 +161,86 @@ def test_openapi_describes_api_key_authentication(settings):
     assert security == {"type": "apiKey", "in": "header", "name": "X-API-Key"}
     assert schema["paths"]["/jobs/{job_id}"]["get"]["security"] == [{"APIKeyHeader": []}]
     assert "security" not in schema["paths"]["/health"]["get"]
+
+
+async def test_workbench_identity_history_and_inbox_are_role_and_tenant_scoped(settings):
+    async with client_for(settings) as (client, app):
+        assert (await client.get("/identity", headers=customer(settings))).json() == {
+            "tenant_id": "demo-a",
+            "role": "customer",
+        }
+        assert (await client.get("/identity", headers=approver(settings))).json()[
+            "role"
+        ] == "approver"
+        assert (await client.get("/conversations")).status_code == 401
+        assert (await client.get("/conversations", headers=approver(settings))).status_code == 403
+        conversation = (await client.post("/conversations", headers=customer(settings))).json()
+        history = f"/conversations/{conversation['id']}/jobs"
+        assert (await client.get(history, headers=customer(settings, "b"))).status_code == 404
+        assert (await client.get(history, headers=approver(settings))).status_code == 403
+        assert (await client.get(history, headers=customer(settings))).json() == []
+        accepted = await client.post(
+            f"/conversations/{conversation['id']}/messages",
+            headers=customer(settings),
+            json={"message": "Problema con CASE-101"},
+        )
+        job = await app.state.store.claim(30)
+        await app.state.store.finish(job.model_copy(update={"status": "WAITING_APPROVAL"}))
+        listed = (await client.get("/conversations", headers=customer(settings))).json()
+        assert listed[0]["title"] == "Problema con CASE-101"
+        assert listed[0]["last_job_status"] == "WAITING_APPROVAL"
+        assert (await client.get("/conversations", headers=customer(settings, "b"))).json() == []
+        assert (await client.get(history, headers=customer(settings))).json()[0]["id"] == str(
+            job.id
+        )
+        assert (await client.get("/approvals", headers=customer(settings))).status_code == 403
+        assert (await client.get("/approvals", headers=approver(settings, "b"))).json() == []
+        inbox = (await client.get("/approvals", headers=approver(settings))).json()
+        assert [item["id"] for item in inbox] == [accepted.json()["id"]]
+        assert (
+            await client.post(
+                f"/jobs/{job.id}/approve",
+                headers=approver(settings),
+                json={"approved": False},
+            )
+        ).status_code == 202
+        assert (await client.get("/approvals", headers=approver(settings))).json() == []
+
+
+async def test_workbench_history_survives_a_new_api_instance(settings):
+    async with client_for(settings) as (client, app):
+        conversation = await app.state.store.create_conversation("demo-a")
+        await app.state.store.submit(conversation.id, "demo-a", "Primera consulta")
+    async with client_for(settings) as (client, app):
+        assert (await client.get("/conversations", headers=customer(settings))).json()[0][
+            "id"
+        ] == str(conversation.id)
+        jobs = (
+            await client.get(f"/conversations/{conversation.id}/jobs", headers=customer(settings))
+        ).json()
+        assert jobs[0]["message"] == "Primera consulta"
+
+
+async def test_built_frontend_preserves_api_routes_auth_and_private_cache_policy(
+    settings, tmp_path, monkeypatch
+):
+    web_dist = tmp_path / "web" / "dist"
+    web_dist.mkdir(parents=True)
+    (web_dist / "index.html").write_text("<html>Support lab</html>", encoding="utf-8")
+    monkeypatch.setattr("app.main.BASE_DIR", tmp_path)
+    app = create_app(settings, ScriptedModel([]), FakeRetriever(), start_workers=False)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        page = await client.get("/")
+        assert page.status_code == 200
+        assert "Support lab" in page.text
+        assert page.headers["X-Content-Type-Options"] == "nosniff"
+        assert (await client.get("/docs")).status_code == 200
+        identity = await client.get("/identity")
+        assert identity.status_code == 401
+        assert identity.headers["Cache-Control"] == "no-store"
+        identity = await client.get("/identity", headers=customer(settings))
+        assert identity.json() == {"tenant_id": "demo-a", "role": "customer"}
+        assert identity.headers["Cache-Control"] == "no-store"
+        assert (await client.get("/missing-route")).status_code == 404

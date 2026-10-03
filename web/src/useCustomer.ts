@@ -107,6 +107,7 @@ export function useCustomer(api: Api) {
     busy.current = true;
     setSending(true);
     setError("");
+    const originalDraft = draft;
     try {
       const result = await api<{ id: string }>(
         "/conversations",
@@ -115,7 +116,7 @@ export function useCustomer(api: Api) {
       );
       if (!lifetime.current.signal.aborted) {
         setSelected(result.id);
-        setDraft("");
+        setDraft((current) => (current === originalDraft ? "" : current));
         void refreshConversations();
       }
     } catch (e) {
