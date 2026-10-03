@@ -1,0 +1,5 @@
+{
+  "title": "Casos detenidos y tiempos de procesamiento",
+  "version": "1.0",
+  "text": "Un caso detenido requiere revisar primero su estado operativo y documentos faltantes. Si está waiting_documents, completar la lista pendiente con un owner o editor. Si está in_review con todos los documentos, la revisión puede necesitar intervención del equipo; no inventar motivos ni afirmar que ya fue aprobado. Recabar identificador del caso, acción esperada y descripción del problema antes de proponer un ticket. No hay un plazo garantizado de procesamiento externo en esta demostración. No prometer horas o días para registros, autorizaciones ni resultados de terceros. Si falta contexto, pedir información concreta. Si los documentos y el estado no permiten explicar el bloqueo, derivar a soporte para revisión humana."
+}

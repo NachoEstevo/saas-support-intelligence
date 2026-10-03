@@ -1,0 +1,5 @@
+{
+  "title": "Primeros pasos en Nexo SaaS",
+  "version": "1.0",
+  "text": "Nexo SaaS es un servicio ficticio para organizar empresas, documentos y casos de trabajo. Estas reglas pertenecen exclusivamente a la demostración de Nexo; no describen reglas de Rely ni de organismos externos. Para empezar, el owner crea el espacio de su empresa, confirma su identidad en el producto e invita colaboradores con el rol necesario. Después se abre un caso y se consulta la lista de documentos requeridos para ese caso. Los ejemplos del entorno son datos ficticios. Configurar un espacio o adjuntar archivos no registra una empresa ante un organismo ni garantiza aprobaciones externas. Si no está claro qué empresa, caso o acción consulta la persona, pedir esa información antes de dar instrucciones específicas. Nunca solicitar contraseñas, claves de API ni datos sensibles innecesarios."
+}

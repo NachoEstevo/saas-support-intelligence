@@ -1,0 +1,5 @@
+{
+  "title": "Derivación a soporte y aprobación de tickets",
+  "version": "1.0",
+  "text": "Derivar a soporte cuando haya fallas repetidas de carga, permisos incoherentes, datos contradictorios o preguntas fuera del alcance documentado. Para proponer un ticket, reunir un asunto claro, descripción del problema y el identificador del caso si corresponde. El asistente puede preparar un borrador; el ticket no se crea hasta que una persona autorizada con credencial approver lo aprueba. La aprobación o rechazo del borrador no cambia automáticamente documentos, estado del caso ni permisos. No afirmar que un ticket fue creado si solo existe una propuesta pendiente. Solicitar únicamente información necesaria, sin contraseñas, claves o archivos sensibles dentro del texto. Si no hay suficiente contexto para una respuesta fundamentada, pedir datos o derivar; nunca inventar una política."
+}

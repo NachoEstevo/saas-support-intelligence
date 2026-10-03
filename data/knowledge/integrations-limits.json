@@ -1,0 +1,5 @@
+{
+  "title": "Integraciones y límites del asistente",
+  "version": "1.0",
+  "text": "La demostración de Nexo permite consultar conocimiento y datos operativos de casos, y proponer tickets sujetos a aprobación humana. No ejecuta registros ante organismos, no verifica resultados legales y no modifica estados o permisos por solicitud conversacional. Una integración externa no documentada debe revisarse con soporte: no inventar endpoints, cuotas, compatibilidades ni plazos. Una coincidencia de búsqueda es una referencia posible y no prueba que su contenido responda la consulta. Si las fuentes no sustentan la respuesta, pedir aclaración o derivar. Si faltan datos del caso, consultar su identificador dentro del espacio autorizado; nunca usar un caso de otro espacio para completar información. La disponibilidad técnica de una API no garantiza aprobación ni procesamiento de terceros."
+}

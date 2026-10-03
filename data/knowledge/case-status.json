@@ -1,0 +1,5 @@
+{
+  "title": "Estados del caso y condición de finalización",
+  "version": "1.0",
+  "text": "Los estados operativos de Nexo son waiting_documents, in_review y completed. waiting_documents significa que el flujo espera documentos; si requiere domicilio y aún falta, cargar el domicilio mediante un owner o editor. in_review significa que el caso está en revisión operativa; no indica aprobación externa. completed significa que el flujo interno fue marcado como completado. Para afirmar que un caso está completo deben coincidir todos los documentos requeridos cargados y el estado operativo real completed. Con todos los documentos cargados y estado in_review, el caso sigue en revisión y no está completado. Si documentos y estado se contradicen, pedir revisión de soporte y no corregir el estado por cuenta propia. Para un caso con domicilio faltante, citar esta guía junto con requisitos documentales. Nexo no garantiza registros, aprobaciones de terceros ni resultados legales. Consultar los datos vigentes del caso; no inferir el estado desde una respuesta anterior."
+}

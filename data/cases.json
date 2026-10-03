@@ -1,0 +1,26 @@
+[
+  {
+    "tenant_id": "demo-a",
+    "case_id": "CASE-101",
+    "company": "Alba Demo",
+    "status": "waiting_documents",
+    "required_documents": ["identidad", "domicilio"],
+    "uploaded_documents": ["identidad"]
+  },
+  {
+    "tenant_id": "demo-a",
+    "case_id": "CASE-102",
+    "company": "Alba Demo",
+    "status": "in_review",
+    "required_documents": ["identidad", "domicilio"],
+    "uploaded_documents": ["identidad", "domicilio"]
+  },
+  {
+    "tenant_id": "demo-b",
+    "case_id": "CASE-201",
+    "company": "Beta Demo",
+    "status": "waiting_documents",
+    "required_documents": ["identidad", "autorizacion"],
+    "uploaded_documents": ["identidad"]
+  }
+]

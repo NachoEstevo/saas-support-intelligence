@@ -1,0 +1,5 @@
+{
+  "title": "Roles owner, editor y viewer",
+  "version": "1.0",
+  "text": "Owner administra el espacio de la empresa y las invitaciones de colaboradores. Editor trabaja en los casos y puede cargar documentos, pero no cambia la propiedad del espacio. Viewer puede consultar información autorizada en su espacio y no puede cargar documentos ni modificar el caso. Tanto owner como editor pueden cargar identidad, domicilio u otro documento requerido. Para un viewer que necesita adjuntar un archivo, pedir que un owner o editor realice la carga o que el owner revise su rol. Confirmar el rol operativo antes de afirmar que una persona puede modificar documentos. Los roles del producto no son las credenciales técnicas customer y approver de esta demostración: customer inicia consultas; approver decide la aprobación de un ticket propuesto. Ninguno de estos permisos habilita acceso a empresas o casos de otro espacio."
+}

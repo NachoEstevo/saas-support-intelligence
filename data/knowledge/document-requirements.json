@@ -1,0 +1,5 @@
+{
+  "title": "Requisitos documentales y domicilio faltante",
+  "version": "1.0",
+  "text": "Cada caso tiene su propia lista de documentos requeridos y de documentos cargados. La lista vigente del caso es la fuente para calcular faltantes: documentos requeridos menos documentos cargados. Cuando el caso requiere identidad y domicilio y solo tiene identidad, falta domicilio. Un documento de identidad no reemplaza el documento de domicilio. Otros casos pueden pedir autorización en lugar de domicilio; no trasladar requisitos de un caso a otro. Para avanzar, un owner o editor debe cargar el domicilio faltante siguiendo las reglas de carga. Si la lista no está disponible, pedir el identificador de caso o derivar a soporte, sin inventar requisitos. Al explicar un caso con domicilio faltante se debe citar tanto esta guía de requisitos como la guía de estados del caso. Tener todos los archivos cargados no equivale a completar el caso: también se verifica el estado operativo real."
+}

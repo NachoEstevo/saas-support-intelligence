@@ -1,0 +1,5 @@
+{
+  "title": "Carga de documentos: formato, tamaño y revisión",
+  "version": "1.0",
+  "text": "Nexo admite archivos PDF, JPG y PNG de hasta 10 MB por archivo. Owner y editor pueden cargar documentos; viewer no puede cargar, sustituir ni borrar archivos. Abrir el caso correcto, seleccionar el tipo documental requerido y adjuntar el archivo legible y completo. Si supera 10 MB o usa otro formato, preparar una versión compatible y volver a intentar sin enviar el archivo por un canal público. Una carga exitosa confirma recepción técnica, no aprobación de contenido. Consultar luego los documentos cargados y el estado real del caso. Si el archivo no aparece o la carga falla repetidamente, anotar el mensaje de error y derivar a soporte. No prometer que volver a cargar un archivo cambia automáticamente el estado a completado."
+}
