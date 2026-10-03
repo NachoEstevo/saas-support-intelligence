@@ -36,6 +36,7 @@ class FakeCollection:
         self.metadata = HybridRetriever.initial_metadata(settings)
         self.rows = {}
         self.fail_upsert = False
+        self.fail_final_modify_once = False
         self.vector_ids = []
 
     async def get(self, ids=None, include=None):
@@ -63,10 +64,19 @@ class FakeCollection:
             self.rows.pop(key, None)
 
     async def modify(self, metadata):
+        if (
+            self.fail_final_modify_once
+            and metadata["indexed"] == 1
+            and metadata.get("pending_ids", "[]") == "[]"
+        ):
+            self.fail_final_modify_once = False
+            raise RuntimeError("manifest commit unavailable")
         self.metadata = metadata
 
-    async def query(self, query_embeddings, n_results, include):
-        return {"ids": [self.vector_ids or list(self.rows)[:n_results]]}
+    async def query(self, query_embeddings, n_results, include, ids=None):
+        ranked = self.vector_ids or list(self.rows)
+        allowed = set(ids) if ids is not None else None
+        return {"ids": [[key for key in ranked if allowed is None or key in allowed][:n_results]]}
 
 
 class FakeEmbeddings:
@@ -154,7 +164,10 @@ async def test_failed_upsert_does_not_delete_or_advance_manifest(retriever):
     with pytest.raises(RuntimeError):
         await retriever.ingest()
     assert set(retriever.collection.rows) == old_ids
-    assert retriever.collection.metadata == old_manifest
+    assert {
+        key: value for key, value in retriever.collection.metadata.items() if key != "pending_ids"
+    } == {key: value for key, value in old_manifest.items() if key != "pending_ids"}
+    assert retriever.collection.metadata["pending_ids"] != "[]"
 
 
 @pytest.mark.asyncio
@@ -345,6 +358,56 @@ async def test_ready_rejects_stale_corpus(retriever):
     write_doc(retriever.corpus_dir, text="Nuevo domicilio")
     with pytest.raises(ValueError, match="does not match"):
         await retriever.ready()
+
+
+@pytest.mark.asyncio
+async def test_initial_manifest_commit_failure_recovers_owned_upserts(retriever):
+    for number in range(8):
+        write_doc(retriever.corpus_dir, f"extra-{number}", f"Guía global número {number}")
+    retriever.collection.fail_final_modify_once = True
+    with pytest.raises(RuntimeError, match="manifest commit unavailable"):
+        await retriever.ingest()
+    assert len(retriever.collection.rows) == 9
+    with pytest.raises(ValueError, match="not indexed"):
+        await retriever.ready()
+    assert await retriever.ingest() == {"inserted": 0, "skipped": 9, "deleted": 0}
+    assert len(retriever.embeddings.calls) == 1
+    assert await retriever.ready() is None
+
+
+@pytest.mark.asyncio
+async def test_pending_rows_are_reconciled_when_corpus_changes_during_recovery(retriever):
+    retriever.collection.fail_final_modify_once = True
+    with pytest.raises(RuntimeError, match="manifest commit unavailable"):
+        await retriever.ingest()
+    previous_ids = set(retriever.collection.rows)
+    write_doc(retriever.corpus_dir, text="Requisito domicilio actualizado")
+    assert await retriever.ingest() == {"inserted": 1, "skipped": 0, "deleted": 1}
+    assert not previous_ids & set(retriever.collection.rows)
+    assert retriever.collection.metadata["pending_ids"] == "[]"
+    assert await retriever.ready() is None
+
+
+@pytest.mark.asyncio
+async def test_pending_bootstrap_does_not_claim_foreign_rows(retriever):
+    retriever.collection.fail_final_modify_once = True
+    with pytest.raises(RuntimeError, match="manifest commit unavailable"):
+        await retriever.ingest()
+    retriever.collection.rows["foreign"] = ([], {}, "unowned")
+    previous_rows = retriever.collection.rows.copy()
+    with pytest.raises(ValueError, match="Unmanifested"):
+        await retriever.ingest()
+    assert retriever.collection.rows == previous_rows
+    assert len(retriever.embeddings.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_foreign_vector_rows_cannot_consume_candidate_window(retriever):
+    await retriever.ingest()
+    known_ids = list(retriever.collection.rows)
+    retriever.collection.vector_ids = [f"foreign-{number}" for number in range(20)] + known_ids
+    sources = await retriever.search("zzzzzz")
+    assert [source.id for source in sources] == known_ids
 
 
 def test_global_corpus_has_nine_original_guides_and_no_case_data():

@@ -141,6 +141,7 @@ class HybridRetriever:
             "corpus_fingerprint": "",
             "indexed": 0,
             "known_ids": "[]",
+            "pending_ids": "[]",
         }
 
     @classmethod
@@ -192,7 +193,7 @@ class HybridRetriever:
                 self.settings.chroma_collection, embedding_function=None
             )
 
-    def _manifest(self) -> tuple[dict, set[str]]:
+    def _manifest(self) -> tuple[dict, set[str], set[str]]:
         metadata = self.collection.metadata or {}
         if metadata.get("manifest_version") != MANIFEST_VERSION:
             raise ValueError("Unmanifested collection: ingestion refused")
@@ -203,13 +204,17 @@ class HybridRetriever:
             raise ValueError("Embedding configuration mismatch")
         try:
             known = json.loads(metadata["known_ids"])
+            pending = json.loads(metadata.get("pending_ids", "[]"))
             if (
-                not isinstance(known, list)
-                or any(
-                    not isinstance(item, str) or not re.fullmatch(r"[a-f0-9]{64}", item)
-                    for item in known
+                any(
+                    not isinstance(ids, list)
+                    or any(
+                        not isinstance(item, str) or not re.fullmatch(r"[a-f0-9]{64}", item)
+                        for item in ids
+                    )
+                    or len(ids) != len(set(ids))
+                    for ids in (known, pending)
                 )
-                or len(known) != len(set(known))
                 or metadata.get("indexed") not in (0, 1)
                 or not isinstance(metadata.get("corpus_fingerprint"), str)
                 or (
@@ -220,7 +225,7 @@ class HybridRetriever:
                 raise ValueError("Invalid manifest")
         except (KeyError, TypeError, ValueError):
             raise ValueError("Invalid corpus manifest") from None
-        return metadata, set(known)
+        return metadata, set(known), set(pending)
 
     def _validate_embeddings(self, vectors: list[list[float]], expected: int) -> None:
         if len(vectors) != expected or any(
@@ -234,17 +239,27 @@ class HybridRetriever:
         async with self._lock:
             chunks, fingerprint = await asyncio.to_thread(load_corpus, self.corpus_dir)
             await self._refresh_collection()
-            metadata, known_ids = self._manifest()
-            if not metadata["indexed"] and await self.collection.count():
-                raise ValueError("Unmanifested collection contents: ingestion refused")
+            metadata, known_ids, pending_ids = self._manifest()
+            owned_ids = known_ids | pending_ids
+            if not metadata["indexed"]:
+                stored = await self.collection.get(include=[])
+                if set(stored["ids"]) - owned_ids:
+                    raise ValueError("Unmanifested collection contents: ingestion refused")
             current = {chunk.id: chunk for chunk in chunks}
             existing = await self.collection.get(ids=list(current), include=["metadatas"])
-            existing_ids = set(existing["ids"]) & known_ids
+            existing_ids = set(existing["ids"]) & owned_ids
             stored_metadata = dict(zip(existing["ids"], existing["metadatas"], strict=True))
             changed = [chunk for chunk in chunks if chunk.id not in existing_ids]
             if changed:
                 vectors = await self.embeddings.aembed_documents([chunk.text for chunk in changed])
                 self._validate_embeddings(vectors, len(changed))
+                metadata = {
+                    **metadata,
+                    "pending_ids": json.dumps(
+                        sorted(pending_ids | {chunk.id for chunk in changed})
+                    ),
+                }
+                await self.collection.modify(metadata=metadata)
                 await self.collection.upsert(
                     ids=[chunk.id for chunk in changed],
                     embeddings=vectors,
@@ -261,7 +276,7 @@ class HybridRetriever:
                     ids=[chunk.id for chunk in metadata_only],
                     metadatas=[chunk_metadata(chunk) for chunk in metadata_only],
                 )
-            obsolete = known_ids - current.keys()
+            obsolete = owned_ids - current.keys()
             if obsolete:
                 await self.collection.delete(ids=sorted(obsolete))
             updated_metadata = {
@@ -281,9 +296,11 @@ class HybridRetriever:
     async def _validated_chunks(self) -> list[Source]:
         chunks, fingerprint = await asyncio.to_thread(load_corpus, self.corpus_dir)
         await self._refresh_collection()
-        metadata, known_ids = self._manifest()
+        metadata, known_ids, pending_ids = self._manifest()
         if not metadata["indexed"]:
             raise ValueError("Knowledge corpus is not indexed")
+        if pending_ids:
+            raise ValueError("Knowledge ingestion is pending; run ingestion")
         if metadata["corpus_fingerprint"] != fingerprint:
             raise ValueError("Indexed corpus does not match local corpus; run ingestion")
         if known_ids != {chunk.id for chunk in chunks}:
@@ -308,6 +325,7 @@ class HybridRetriever:
             self._validate_embeddings([vector], 1)
             result = await self.collection.query(
                 query_embeddings=[vector],
+                ids=sorted(current),
                 n_results=min(len(chunks), max(self.settings.top_k * 4, 10)),
                 include=["distances"],
             )
