@@ -28,6 +28,11 @@ def validation_error(state: SupportState) -> str:
     if response.status == "answered" and not response.citations:
         return "La respuesta requiere evidencia documental citada."
     case_result = state.get("case_result")
+    if case_result is not None and response.status == "answered":
+        if not case_result.found:
+            return "El caso no fue encontrado; se necesita aclaración, no una respuesta operativa."
+        if not response.case_id:
+            return "Una respuesta operativa necesita el identificador del caso consultado."
     if response.case_id:
         if not case_result or not case_result.found or not case_result.case:
             return "El caso de la respuesta no fue consultado exitosamente."
@@ -189,9 +194,13 @@ Explicá límites del soporte; nunca modifiques casos ni sugieras eludir permiso
             return {}
         approved = interrupt({"action": "create_ticket", "draft": response.ticket.model_dump()})
         if approved is not True:
+            answer = "La creación del ticket fue rechazada. No se creó ningún ticket."
             return {
                 "rejected": True,
-                "messages": [AIMessage("La creación del ticket fue rechazada.")],
+                "response": SupportResponse.model_validate(
+                    response.model_dump() | {"answer": answer}
+                ),
+                "messages": [AIMessage(answer)],
             }
         ticket = await store.create_ticket(
             runtime.context.job_id,

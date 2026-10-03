@@ -139,3 +139,25 @@ async def test_health_detects_unavailable_knowledge(settings):
 
         retriever.ready = unavailable
         assert (await client.get("/health")).status_code == 503
+
+
+async def test_non_ascii_credential_returns_unauthorized_instead_of_server_error(settings):
+    app = create_app(settings, ScriptedModel([]), FakeRetriever(), start_workers=False)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app, raise_app_exceptions=False),
+            base_url="http://test",
+        ) as client:
+            response = await client.post(
+                "/conversations", headers={"X-API-Key": "incorrectá".encode()}
+            )
+            assert response.status_code == 401
+
+
+def test_openapi_describes_api_key_authentication(settings):
+    app = create_app(settings, ScriptedModel([]), FakeRetriever(), start_workers=False)
+    schema = app.openapi()
+    security = schema["components"]["securitySchemes"]["APIKeyHeader"]
+    assert security == {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+    assert schema["paths"]["/jobs/{job_id}"]["get"]["security"] == [{"APIKeyHeader": []}]
+    assert "security" not in schema["paths"]["/health"]["get"]

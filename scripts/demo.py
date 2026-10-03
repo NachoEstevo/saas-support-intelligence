@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 from pathlib import Path
@@ -27,7 +28,37 @@ async def wait_job(client: httpx.AsyncClient, identity: str, headers: dict) -> d
             await asyncio.sleep(0.3)
 
 
-async def demo(settings: DemoSettings) -> dict:
+async def restart_local_api(client: httpx.AsyncClient) -> None:
+    if client.base_url.host not in ("127.0.0.1", "localhost", "::1"):
+        raise ValueError("El reinicio requiere una API local.")
+    process = await asyncio.create_subprocess_exec(
+        "docker",
+        "compose",
+        "restart",
+        "api",
+        cwd=Path(__file__).resolve().parents[1],
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    try:
+        async with asyncio.timeout(60):
+            if await process.wait() != 0:
+                raise RuntimeError("Docker no pudo reiniciar la API.")
+            while True:
+                try:
+                    response = await client.get("/health")
+                    if response.status_code == 200:
+                        return
+                except httpx.RequestError:
+                    pass
+                await asyncio.sleep(0.5)
+    finally:
+        if process.returncode is None:
+            process.kill()
+            await process.wait()
+
+
+async def demo(settings: DemoSettings, *, restart_api: bool = False) -> dict:
     customer = {"X-API-Key": settings.customer_a_key.get_secret_value()}
     other = {"X-API-Key": settings.customer_b_key.get_secret_value()}
     approver = {"X-API-Key": settings.approver_a_key.get_secret_value()}
@@ -124,11 +155,27 @@ async def demo(settings: DemoSettings) -> dict:
                 and ticket.json()["case_id"] == "CASE-101"
             )
             handoff["customer_approval_status"] = denied.status_code
+        if restart_api:
+            await restart_local_api(client)
+            resumed = await run(
+                "memory-after-restart",
+                "¿Qué documentación falta en ese caso?",
+                case["conversation_id"],
+            )
+            resumed["passed"] = (
+                resumed["job"]["status"] == "DONE"
+                and resumed["job"]["response"]["case_id"] == "CASE-101"
+                and resumed["job"]["response"]["missing_documents"] == ["domicilio"]
+            )
         return {"transport": "HTTP", "synthetic_data": True, "scenarios": records}
 
 
 async def main() -> None:
-    result = await demo(DemoSettings())
+    parser = argparse.ArgumentParser(description="Demo HTTP con proveedores reales.")
+    parser.add_argument(
+        "--restart-api", action="store_true", help="Reiniciar la API local y verificar su memoria."
+    )
+    result = await demo(DemoSettings(), restart_api=parser.parse_args().restart_api)
     path = Path("evidence/demo.json")
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")

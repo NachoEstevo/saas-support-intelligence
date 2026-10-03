@@ -31,7 +31,8 @@ Detener sin borrar datos: `docker compose stop`.
 ## Uso
 
 Autenticación: encabezado `X-API-Key`. Las credenciales determinan la cuenta
-en el servidor; el usuario o el modelo no pueden elegirla.
+en el servidor; el usuario o el modelo no pueden elegirla. En Swagger, ingresarla
+en **Authorize** antes de probar los endpoints.
 
 | Operación | Endpoint |
 | --- | --- |
@@ -104,15 +105,23 @@ Con la API levantada y `.env` configurado, `python -m scripts.demo` ejecuta seis
 escenarios reales por HTTP y guarda `evidence/demo.json`. Usa LLM/embeddings y tiene
 costo: respuesta documentada, dos especialistas, memoria, abstención, aislamiento
 y aprobación humana. Cada job incluye `trace_id`, rutas, herramientas y duraciones;
-no contiene razonamiento privado del modelo.
+no contiene razonamiento privado del modelo. Para agregar la séptima prueba,
+reiniciando únicamente el servicio local `api` y verificando la memoria persistente:
+
+```sh
+python -m scripts.demo --restart-api
+```
+
+El reinicio es opcional y solo admite una API en localhost.
 
 Con `LANGSMITH_TRACING=true`, las trazas se envían a
 `https://api.smith.langchain.com`, proyecto `saas-support-intelligence`.
 `evidence/traces.json` registra la comprobación de la demo en LangSmith.
 
-Verificación del 3 de octubre de 2026: **59 tests aprobados** y **7/7 escenarios
-reales aprobados**. La evidencia agrega al script el reinicio de la API con
-`docker compose restart api` seguido de una continuación en la misma conversación.
+Verificación del 3 de octubre de 2026: **66 tests aprobados** y **7/7 escenarios
+reales aprobados**, incluyendo la continuación de una conversación tras reiniciar
+la API. Los tests también cubren claves inválidas, casos no encontrados y rechazo
+de tickets sin creación.
 La segunda ingesta informó `inserted=0, skipped=9, deleted=0`.
 Las trazas se comprobaron por API; su vista web requiere iniciar sesión en LangSmith.
 

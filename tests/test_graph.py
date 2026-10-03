@@ -157,6 +157,7 @@ async def test_human_approval_resumes_only_ticket_node(store, settings, saver, a
         assert ticket.case_id == "CASE-101"
     else:
         assert final.ticket_id is None
+        assert "rechazada" in final.response.answer
 
 
 async def test_unexpected_model_failure_is_a_controlled_job_error(store, settings, saver):
@@ -165,3 +166,21 @@ async def test_unexpected_model_failure_is_a_controlled_job_error(store, setting
     assert job.status == "FAILED"
     assert job.error == "EXECUTION_ERROR"
     assert job.response is None
+
+
+@pytest.mark.parametrize("case_id", ["CASE-101", "CASE-201"])
+async def test_answer_cannot_bypass_case_validation_by_omitting_case_id(
+    store, settings, saver, case_id
+):
+    invalid = SupportResponse(
+        status="answered", answer="El caso está listo.", citations=[SOURCE.id]
+    )
+    model = ScriptedModel(
+        ["knowledge", "operations", "synthesis", "synthesis"],
+        [*knowledge_messages(), *case_messages(case_id)],
+        [invalid, invalid],
+    )
+    job, _, _ = await run_job(store, settings, saver, model, message=f"Consultar {case_id}")
+    assert job.status == "DONE"
+    assert job.response.status == "needs_information"
+    assert not job.response.case_id

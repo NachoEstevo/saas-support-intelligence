@@ -3,8 +3,9 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.security import APIKeyHeader
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
@@ -60,8 +61,9 @@ def create_app(
                 await workers.stop()
 
     app = FastAPI(title="SaaS Support Intelligence", version="0.1.0", lifespan=lifespan)
+    credential_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-    async def authenticate(x_api_key: str = Header(default="")) -> Principal:
+    async def authenticate(x_api_key: str | None = Depends(credential_header)) -> Principal:
         credentials = (
             (settings.customer_a_key, "demo-a", "customer"),
             (settings.customer_b_key, "demo-b", "customer"),
@@ -69,7 +71,9 @@ def create_app(
             (settings.approver_b_key, "demo-b", "approver"),
         )
         for key, tenant_id, role in credentials:
-            if secrets.compare_digest(x_api_key, key.get_secret_value()):
+            if secrets.compare_digest(
+                (x_api_key or "").encode("utf-8"), key.get_secret_value().encode("utf-8")
+            ):
                 return Principal(tenant_id=tenant_id, role=role)
         raise HTTPException(401, "Invalid API credential")
 
