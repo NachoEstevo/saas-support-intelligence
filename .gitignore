@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+*.sqlite*
+*.db
+.data/
+tmp/
+.superpowers/
+docs/
+plans/
+PLAN.md
+*plan*.md
+*report*.md
