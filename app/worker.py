@@ -5,6 +5,16 @@ from uuid import uuid4
 
 from langchain_core.messages import RemoveMessage
 from langgraph.types import Command
+from openai import (
+    APIConnectionError,
+    APIError,
+    APIStatusError,
+    APITimeoutError,
+    AuthenticationError,
+    PermissionDeniedError,
+    RateLimitError,
+)
+from pydantic import ValidationError
 from redis.exceptions import RedisError
 
 from app.config import Settings
@@ -14,6 +24,26 @@ from app.state import ExecutionContext
 from app.store import InvalidJobState, Store
 
 logger = logging.getLogger(__name__)
+
+
+def _failure_code(error: APIError | TimeoutError | ValidationError) -> str:
+    if isinstance(error, (APITimeoutError, TimeoutError)):
+        return "TIMEOUT"
+    if isinstance(error, (AuthenticationError, PermissionDeniedError)):
+        return "PROVIDER_AUTH_ERROR"
+    if isinstance(error, RateLimitError):
+        return (
+            "PROVIDER_QUOTA_EXCEEDED"
+            if error.code == "insufficient_quota"
+            else "PROVIDER_RATE_LIMIT"
+        )
+    if isinstance(error, APIConnectionError):
+        return "PROVIDER_UNAVAILABLE"
+    if isinstance(error, APIStatusError):
+        return "PROVIDER_UNAVAILABLE" if error.status_code >= 500 else "PROVIDER_REQUEST_ERROR"
+    if isinstance(error, ValidationError):
+        return "INVALID_MODEL_OUTPUT"
+    return "PROVIDER_ERROR"
 
 
 class Workers:
@@ -84,21 +114,22 @@ class Workers:
             await self.store.finish(job)
             logger.info("job=%s status=%s seconds=%.2f", job.id, status, perf_counter() - started)
         except asyncio.CancelledError:
-            await asyncio.shield(
-                self.store.finish(
-                    job.model_copy(
-                        update={
-                            "status": "FAILED",
-                            "error": "WORKER_STOPPED",
-                        }
-                    )
-                )
-            )
+            await asyncio.shield(self._fail(job, "WORKER_STOPPED", started))
             raise
-        except Exception as error:
-            code = "TIMEOUT" if isinstance(error, TimeoutError) else "EXECUTION_ERROR"
-            logger.warning("job=%s failure=%s", job.id, type(error).__name__)
-            await self.store.finish(job.model_copy(update={"status": "FAILED", "error": code}))
+        except (APIError, TimeoutError, ValidationError) as error:
+            await self._fail(job, _failure_code(error), started)
+        except Exception:
+            await self._fail(job, "EXECUTION_ERROR", started)
+
+    async def _fail(self, job: Job, code: str, started: float) -> None:
+        seconds = round(perf_counter() - started, 4)
+        event = {"agent": "workflow", "status": "error", "error": code, "seconds": seconds}
+        await self.store.finish(
+            job.model_copy(
+                update={"status": "FAILED", "error": code, "events": [*job.events, event]}
+            )
+        )
+        logger.warning("job=%s failure=%s seconds=%.2f", job.id, code, seconds)
 
     async def loop(self) -> None:
         while True:

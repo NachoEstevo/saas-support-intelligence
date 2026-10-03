@@ -1,7 +1,20 @@
+import asyncio
 import json
 
+import httpx
 import pytest
 from langchain_core.messages import AIMessage
+from openai import (
+    APIConnectionError,
+    APIError,
+    APITimeoutError,
+    AuthenticationError,
+    BadRequestError,
+    InternalServerError,
+    PermissionDeniedError,
+    RateLimitError,
+)
+from pydantic import ValidationError
 
 from app.config import BASE_DIR
 from app.graph import build_graph
@@ -184,3 +197,106 @@ async def test_answer_cannot_bypass_case_validation_by_omitting_case_id(
     assert job.status == "DONE"
     assert job.response.status == "needs_information"
     assert not job.response.case_id
+
+
+def provider_error(error_type, status: int, code: str | None = None):
+    response = httpx.Response(
+        status, request=httpx.Request("POST", "https://api.openai.com/v1/responses")
+    )
+    return error_type("private-provider-detail", response=response, body={"code": code})
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (provider_error(AuthenticationError, 401), "PROVIDER_AUTH_ERROR"),
+        (provider_error(PermissionDeniedError, 403), "PROVIDER_AUTH_ERROR"),
+        (provider_error(RateLimitError, 429), "PROVIDER_RATE_LIMIT"),
+        (provider_error(RateLimitError, 429, "insufficient_quota"), "PROVIDER_QUOTA_EXCEEDED"),
+        (provider_error(InternalServerError, 503), "PROVIDER_UNAVAILABLE"),
+        (provider_error(BadRequestError, 400), "PROVIDER_REQUEST_ERROR"),
+        (
+            APIError(
+                "private-provider-detail",
+                httpx.Request("POST", "https://api.openai.com"),
+                body=None,
+            ),
+            "PROVIDER_ERROR",
+        ),
+        (
+            APIConnectionError(
+                message="private-provider-detail",
+                request=httpx.Request("POST", "https://api.openai.com"),
+            ),
+            "PROVIDER_UNAVAILABLE",
+        ),
+        (APITimeoutError(httpx.Request("POST", "https://api.openai.com")), "TIMEOUT"),
+        (TimeoutError("private-provider-detail"), "TIMEOUT"),
+        (
+            ValidationError.from_exception_data(
+                "SupportResponse", [{"type": "missing", "loc": ("answer",), "input": {}}]
+            ),
+            "INVALID_MODEL_OUTPUT",
+        ),
+        (RuntimeError("private-provider-detail"), "EXECUTION_ERROR"),
+    ],
+    ids=[
+        "auth",
+        "permission",
+        "rate-limit",
+        "quota",
+        "server",
+        "request",
+        "provider",
+        "connection",
+        "provider-timeout",
+        "deadline",
+        "schema",
+        "unexpected",
+    ],
+)
+async def test_failed_jobs_record_safe_error_duration_and_release_conversation(
+    store, settings, saver, caplog, error, expected
+):
+    class FailingModel(ScriptedModel):
+        async def ainvoke(self, messages):
+            raise error
+
+    job, conversation, _ = await run_job(store, settings, saver, FailingModel([]))
+    assert job.status == "FAILED"
+    assert job.error == expected
+    assert job.response is None
+    assert job.trace_id is not None
+    assert job.events[-1]["agent"] == "workflow"
+    assert job.events[-1]["status"] == "error"
+    assert job.events[-1]["error"] == expected
+    assert job.events[-1]["seconds"] >= 0
+    assert "private-provider-detail" not in job.model_dump_json()
+    assert "private-provider-detail" not in caplog.text
+    assert (await store.submit(conversation.id, "demo-a", "Otra consulta")).status == "PENDING"
+
+
+async def test_cancellation_records_failure_and_releases_conversation(store, settings, saver):
+    entered = asyncio.Event()
+
+    class BlockingModel(ScriptedModel):
+        async def ainvoke(self, messages):
+            entered.set()
+            await asyncio.Event().wait()
+
+    graph = build_graph(BlockingModel([]), FakeRetriever(), SupportService(store), store, saver)
+    conversation = await store.create_conversation("demo-a")
+    submitted = await store.submit(conversation.id, "demo-a", "Consultar documentos")
+    claimed = await store.claim(settings.job_timeout_seconds)
+    execution = asyncio.create_task(Workers(store, graph, settings).execute(claimed))
+    try:
+        await asyncio.wait_for(entered.wait(), timeout=5)
+    finally:
+        execution.cancel()
+        await asyncio.gather(execution, return_exceptions=True)
+    assert execution.cancelled()
+    job = await store.get_job(submitted.id, "demo-a")
+    assert job.status == "FAILED"
+    assert job.error == "WORKER_STOPPED"
+    assert job.events[-1]["seconds"] >= 0
+    assert (await store.submit(conversation.id, "demo-a", "Otra consulta")).status == "PENDING"

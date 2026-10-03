@@ -84,6 +84,16 @@ La creación de un ticket es idempotente por job. Si el proceso falla después d
 crearlo, el job expone su `ticket_id` y `TICKET_CREATED_EXECUTION_INCOMPLETE` para
 revisión; no oculta el ticket ni afirma que el flujo terminó correctamente.
 
+Los fallos terminan en `FAILED`, conservan `trace_id` y registran su duración.
+`PROVIDER_AUTH_ERROR` indica credenciales/permisos; `PROVIDER_QUOTA_EXCEEDED`,
+cuota agotada; `PROVIDER_RATE_LIMIT`, límite de solicitudes;
+`PROVIDER_UNAVAILABLE`, conexión o servidor; `TIMEOUT`, tiempo excedido;
+`PROVIDER_REQUEST_ERROR`, solicitud rechazada; `INVALID_MODEL_OUTPUT`, salida que
+no valida. Otros errores del proveedor usan `PROVIDER_ERROR` y los inesperados,
+`EXECUTION_ERROR`. La API y nuestros logs no incluyen el mensaje original del error.
+El cliente configura hasta dos reintentos del SDK y 30 segundos por llamada;
+un job fallido no se vuelve a encolar automáticamente.
+
 ## Verificación y trazas
 
 Los tests no llaman proveedores: usan respuestas controladas en el límite del
@@ -118,7 +128,7 @@ Con `LANGSMITH_TRACING=true`, las trazas se envían a
 `https://api.smith.langchain.com`, proyecto `saas-support-intelligence`.
 `evidence/traces.json` registra la comprobación de la demo en LangSmith.
 
-Verificación del 3 de octubre de 2026: **66 tests aprobados** y **7/7 escenarios
+Verificación del 3 de octubre de 2026: **79 tests aprobados** y **7/7 escenarios
 reales aprobados**, incluyendo la continuación de una conversación tras reiniciar
 la API. Los tests también cubren claves inválidas, casos no encontrados y rechazo
 de tickets sin creación.
