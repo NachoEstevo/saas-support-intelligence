@@ -7,21 +7,7 @@ import {
 import { isActive, statusLabel, type Api } from "./api";
 import { useCustomer } from "./useCustomer";
 import Context from "./Context";
-const suggestions = [
-  {
-    label: "¿Qué puedo encontrar en el dashboard de Rely?",
-    prompt: "¿Qué puedo encontrar en el dashboard de Rely?",
-  },
-  {
-    label: "¿Qué falta en el caso de demo CASE-101?",
-    prompt: "¿Qué falta en el caso de demo CASE-101 y cómo lo cargo?",
-  },
-  {
-    label: "Preparar un ticket por un error de carga",
-    prompt:
-      "CASE-101: soy owner. Falla la carga del PDF de domicilio de 2 MB con UploadFailed en tres intentos. Prepará un ticket para soporte humano.",
-  },
-];
+import QuestionSuggestions from "./QuestionSuggestions";
 export default function Customer({ api }: { api: Api }) {
   const state = useCustomer(api);
   return (
@@ -107,21 +93,10 @@ export default function Customer({ api }: { api: Api }) {
                 <span>Avanzá.</span>
               </h1>
               <p>
-                Explorá el agente con un caso de prueba o una pregunta. Cada
-                respuesta incluye sus fuentes.
+                Probá una consulta de soporte o comprobá los límites del
+                asistente.
               </p>
-              <div className="suggestions">
-                {suggestions.map((text, i) => (
-                  <button
-                    key={text.label}
-                    onClick={() => state.setDraft(text.prompt)}
-                  >
-                    <span>0{i + 1}</span>
-                    {text.label}
-                    <ArrowUp size={16} />
-                  </button>
-                ))}
-              </div>
+              <QuestionSuggestions onChoose={state.setDraft} />
             </div>
           )}
           {state.jobs.map((job) => (
@@ -177,6 +152,12 @@ export default function Customer({ api }: { api: Api }) {
           ))}
         </div>
         <div className="composer-shell">
+          {!!state.jobs.length && (
+            <details className="question-guide">
+              <summary>Ideas para seguir explorando</summary>
+              <QuestionSuggestions onChoose={state.setDraft} />
+            </details>
+          )}
           {state.error && (
             <div role="alert" className="error">
               {state.error}

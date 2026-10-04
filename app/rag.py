@@ -93,7 +93,7 @@ def load_corpus(directory: Path) -> tuple[list[Source], str]:
 
 
 def lexical_ranking(chunks: list[Source], query: str) -> list[str]:
-    tokens = [normalize(chunk.text) for chunk in chunks]
+    tokens = [normalize(f"{chunk.title} {chunk.text}") for chunk in chunks]
     if not any(tokens):
         return []
     scores = BM25Okapi(tokens).get_scores(normalize(query))

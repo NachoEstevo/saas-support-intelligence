@@ -419,7 +419,7 @@ small {
 .suggestions {
   display: grid;
   gap: 8px;
-  margin-top: 30px;
+  margin-top: 12px;
 }
 .suggestions button {
   display: flex;
@@ -432,9 +432,55 @@ small {
   font-size: 11px;
   line-height: 1.5;
 }
-.suggestions button > span {
+.suggestions button > .suggestion-number {
   color: #9aa6bc;
   font-size: 10px;
+}
+.suggestion-copy {
+  display: grid;
+  gap: 3px;
+}
+.suggestion-copy strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: #202936;
+}
+.suggestion-copy small,
+.question-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+.question-modes {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+}
+.question-modes button {
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  color: var(--muted);
+  background: #f7f8fb;
+}
+.question-modes button[aria-pressed="true"] {
+  color: #2459d5;
+  background: #edf2fc;
+}
+.question-hint {
+  margin: 12px 0 0;
+  line-height: 1.6;
+}
+.question-guide {
+  margin-bottom: 12px;
+}
+.question-guide > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+}
+.question-guide .question-suggestions {
+  max-height: 250px;
+  overflow-y: auto;
 }
 .suggestions button > svg {
   margin-left: auto;

@@ -23,6 +23,7 @@ class Contribution(Contract):
 
 class SupportState(MessagesState):
     query: str
+    in_scope: bool
     next_agent: Literal["knowledge", "operations", "synthesis"]
     instruction: str
     contributions: dict[str, Contribution]

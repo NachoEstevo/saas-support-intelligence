@@ -129,6 +129,13 @@ def test_normalization_and_weighted_rrf():
     assert ranked == ["b", "c", "a"]
 
 
+def test_generic_plan_question_recovers_the_guide_by_its_title():
+    chunks, _ = load_corpus(CORPUS_DIR)
+    ranked = lexical_ranking(chunks, "Explicame los planes de Rely y sus diferencias")
+    sources = {chunk.id: chunk.source for chunk in chunks}
+    assert "rely_plans_public.json" in [sources[identity] for identity in ranked[:4]]
+
+
 @pytest.mark.parametrize("content", ["{", "{}", '{"title":"a","version":"1","text":" "}'])
 def test_corrupt_document_fails_without_content_in_error(tmp_path, content, caplog):
     (tmp_path / "corrupt.json").write_text(content, encoding="utf-8")

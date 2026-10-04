@@ -146,6 +146,7 @@ class Health(Contract):
 class RouteDecision(Contract):
     next_agent: Literal["knowledge", "operations", "synthesis"]
     instruction: str = Field(min_length=1, max_length=1500)
+    in_scope: bool = True
 
 
 class SearchInput(Contract):

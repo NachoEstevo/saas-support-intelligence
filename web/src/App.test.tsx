@@ -169,6 +169,45 @@ it("uses the Rely logo and omits the removed customer footnotes", async () => {
     screen.queryByText(/Demo educativa\. Verificá por tu cuenta/),
   ).toBeNull();
 });
+it("offers relevant prompts and limit checks without submitting them automatically", async () => {
+  const user = await login();
+  await user.click(
+    await screen.findByRole("button", {
+      name: /Comparar Essential y Business/,
+    }),
+  );
+  expect(
+    (screen.getByLabelText("Mensaje") as HTMLTextAreaElement).value,
+  ).toContain("Essential y Business");
+  await user.click(screen.getByRole("button", { name: "Probar límites" }));
+  await user.click(
+    screen.getByRole("button", { name: /Preguntar por el clima/ }),
+  );
+  expect((screen.getByLabelText("Mensaje") as HTMLTextAreaElement).value).toBe(
+    "¿Cómo va a estar el clima mañana en Buenos Aires?",
+  );
+  expect(screen.getByText(/No debe dar un pronóstico/)).toBeTruthy();
+  expect(
+    vi
+      .mocked(fetch)
+      .mock.calls.some(([path]) => String(path).endsWith("/messages")),
+  ).toBe(false);
+});
+it("keeps the question guide available after opening a conversation", async () => {
+  const user = await login();
+  await user.click(
+    await screen.findByRole("button", { name: /Existing thread/ }),
+  );
+  await screen.findByText("A verified answer");
+  await user.click(screen.getByText("Ideas para seguir explorando"));
+  await user.click(screen.getByRole("button", { name: "Probar límites" }));
+  await user.click(
+    screen.getByRole("button", { name: /Consultar otra cuenta/ }),
+  );
+  expect(
+    (screen.getByLabelText("Mensaje") as HTMLTextAreaElement).value,
+  ).toContain("CASE-201");
+});
 it("restores server history, never persists credentials, and erases the account on logout", async () => {
   const user = await login();
   await user.click(
