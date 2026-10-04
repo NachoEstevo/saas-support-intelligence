@@ -2,7 +2,7 @@
 
 Un asistente de soporte que busca documentación, consulta casos y coordina agentes especializados para responder con evidencia. Integra RAG híbrido, memoria persistente, streaming por párrafos y aprobación humana en una aplicación web.
 
-Proyecto final de **AI Engineering · Coderhouse**. Combina fuentes públicas de Rely con un sandbox operativo de Nexo, sin acceso a cuentas reales de Rely.
+Proyecto final de **AI Engineering · Coderhouse**. Combina fuentes públicas de Rely con un sandbox operativo de Nexo, sin acceso a cuentas reales de [Rely](https://rely.business).
 
 [Abrir demo](https://app-production-c4d7.up.railway.app/) · [Explorar la API](https://app-production-c4d7.up.railway.app/docs) · [Ver el código](https://github.com/NachoEstevo/saas-support-intelligence)
 
