@@ -33,6 +33,98 @@ function serve(routes: Record<string, unknown>) {
     }),
   );
 }
+
+it("shows incoming paragraphs as a draft and replaces them with the validated answer", async () => {
+  const user = await login();
+  serve({
+    "/conversations/c1/jobs": [job({ status: "RUNNING", response: null })],
+  });
+  const original = globalThis.fetch;
+  let stream!: ReadableStreamDefaultController;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (path, options) =>
+      path === "/jobs/j1/stream"
+        ? new Response(
+            new ReadableStream({
+              start(controller) {
+                stream = controller;
+              },
+            }),
+            { headers: { "Content-Type": "text/event-stream" } },
+          )
+        : original(path, options),
+    ),
+  );
+  await user.click(
+    await screen.findByRole("button", { name: /Existing thread/ }),
+  );
+  await waitFor(() => expect(stream).toBeTruthy());
+  const publish = (value: unknown) =>
+    stream.enqueue(
+      new TextEncoder().encode(
+        `event: job\ndata: ${JSON.stringify(value)}\n\n`,
+      ),
+    );
+  publish(
+    job({
+      status: "RUNNING",
+      response: null,
+      draft_answer: "Primer párrafo.\n\n",
+    }),
+  );
+  expect(await screen.findByText("Primer párrafo.")).toBeTruthy();
+  expect(screen.getByText("Verificando respuesta…")).toBeTruthy();
+  expect(screen.queryByText("A verified answer")).toBeNull();
+  publish(job({ status: "RUNNING", response: null, draft_answer: "" }));
+  await waitFor(() => expect(screen.queryByText("Primer párrafo.")).toBeNull());
+  publish(job());
+  expect(await screen.findByText("A verified answer")).toBeTruthy();
+  expect(screen.queryByText("Verificando respuesta…")).toBeNull();
+});
+
+it.each(["switch", "logout"])(
+  "cancels the response stream on %s",
+  async (action) => {
+    const user = await login();
+    serve({
+      "/conversations/c1/jobs": [job({ status: "RUNNING", response: null })],
+      "/conversations/c2/jobs": [job({ id: "j2", message: "Other question" })],
+      "/conversations": [
+        { id: "c1", title: "Existing thread" },
+        { id: "c2", title: "Other thread" },
+      ],
+    });
+    const original = globalThis.fetch;
+    const cancel = vi.fn();
+    let connection: AbortSignal | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (path, options) => {
+        if (path !== "/jobs/j1/stream") return original(path, options);
+        connection = options.signal;
+        return new Response(new ReadableStream({ cancel }), {
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Actualizar conversaciones" }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: /Existing thread/ }),
+    );
+    await waitFor(() => expect(connection).toBeTruthy());
+    await user.click(
+      screen.getByRole("button", {
+        name: action === "logout" ? "Cerrar sesión" : /Other thread/,
+      }),
+    );
+    await waitFor(() => expect(connection?.aborted).toBe(true));
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(screen.queryByText("Verificando respuesta…")).toBeNull();
+  },
+);
 async function login(role = "customer") {
   serve({
     "/identity": { tenant_id: "demo", role },
@@ -53,10 +145,30 @@ async function login(role = "customer") {
   });
   render(<App />);
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText("Credencial de la demo"), "local-demo");
+  await user.type(screen.getByLabelText("Contraseña de acceso"), "local-demo");
   await user.click(screen.getByRole("button", { name: "Ingresar" }));
   return user;
 }
+it("offers password access without the removed educational footer", () => {
+  render(<App />);
+  expect(screen.getByLabelText("Contraseña de acceso")).toBeTruthy();
+  expect(screen.queryByText(/Entorno educativo/)).toBeNull();
+  expect(screen.queryByText(/servidor local/)).toBeNull();
+});
+it("uses the Rely logo and omits the removed customer footnotes", async () => {
+  await login();
+  expect(screen.getByRole("img", { name: "Rely" }).getAttribute("src")).toBe(
+    "/rely-logo.png",
+  );
+  expect(screen.queryByText("Entorno educativo")).toBeNull();
+  expect(
+    screen.queryByText(/Casos sintéticos\. Fuentes públicas\./),
+  ).toBeNull();
+  expect(screen.queryByText(/Sin datos de clientes reales\./)).toBeNull();
+  expect(
+    screen.queryByText(/Demo educativa\. Verificá por tu cuenta/),
+  ).toBeNull();
+});
 it("restores server history, never persists credentials, and erases the account on logout", async () => {
   const user = await login();
   await user.click(
@@ -68,7 +180,7 @@ it("restores server history, never persists credentials, and erases the account 
   await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
   expect(screen.queryByText("A verified answer")).toBeNull();
   expect(
-    (screen.getByLabelText("Credencial de la demo") as HTMLInputElement).value,
+    (screen.getByLabelText("Contraseña de acceso") as HTMLInputElement).value,
   ).toBe("");
 });
 it("preserves newer composer text during submission and displays real queued state", async () => {
@@ -193,7 +305,7 @@ it("clears customer state on unauthorized reads and separates reviewer access", 
   await user.click(
     await screen.findByRole("button", { name: /Existing thread/ }),
   );
-  expect(await screen.findByLabelText("Credencial de la demo")).toBeTruthy();
+  expect(await screen.findByLabelText("Contraseña de acceso")).toBeTruthy();
   expect(screen.queryByLabelText("Mensaje")).toBeNull();
 });
 it("rejects only after confirmation and displays the terminal rejection", async () => {

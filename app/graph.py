@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.tools import tool
+from langchain_core.utils.json import parse_partial_json
 from langgraph.graph import END, START, StateGraph
 from langgraph.runtime import Runtime
 from langgraph.types import interrupt
@@ -148,7 +149,8 @@ def build_graph(
             result["last_case_id"] = contribution.case_result.case.case_id
         return result
 
-    async def synthesis(state: SupportState) -> dict:
+    async def synthesis(state: SupportState, runtime: Runtime[ExecutionContext]) -> dict:
+        runtime.stream_writer({"draft": ""})
         if state["decisions"] > 8:
             response = SupportResponse(
                 status="needs_information",
@@ -180,6 +182,7 @@ handoff puede proponer un ticket SOLO si preparar_ticket devolvió un borrador;
 copiá ese borrador exacto. No afirmes que fue creado, solo que requiere aprobación.
 Si hay un caso vinculado al ticket, debe coincidir con el caso verificado.
 Explicá límites del soporte; nunca modifiques casos ni sugieras eludir permisos.
+Separá los temas en párrafos breves usando dos saltos de línea, sin alargar la respuesta.
 """
             context = {
                 "query": state["query"],
@@ -190,12 +193,28 @@ Explicá límites del soporte; nunca modifiques casos ni sugieras eludir permiso
                 },
                 "feedback": state["feedback"],
             }
-            response = await model.with_structured_output(
-                SupportResponse,
-                method="json_schema",
-            ).ainvoke(
+            raw = ""
+            visible = ""
+            async for chunk in model.bind(response_format=SupportResponse).astream(
                 [SystemMessage(prompt), HumanMessage(json.dumps(context, ensure_ascii=False))]
-            )
+            ):
+                raw += chunk.text
+                if len(raw) > 24000:
+                    raise ValueError("Model response exceeds stream limit")
+                try:
+                    partial = parse_partial_json(raw)
+                except json.JSONDecodeError:
+                    continue
+                answer = partial.get("answer", "") if isinstance(partial, dict) else ""
+                if not isinstance(answer, str) or len(answer) > 4000:
+                    continue
+                boundary = answer.rfind("\n\n")
+                complete = answer[: boundary + 2] if boundary >= 0 else ""
+                if complete != visible:
+                    visible = complete
+                    runtime.stream_writer({"draft": visible})
+            response = SupportResponse.model_validate_json(raw)
+            runtime.stream_writer({"draft": response.answer})
         return {"response": response}
 
     def validation(state: SupportState, runtime: Runtime[ExecutionContext]) -> dict:
@@ -203,6 +222,7 @@ Explicá límites del soporte; nunca modifiques casos ni sugieras eludir permiso
         event = {"agent": "validation", "status": "rejected" if error else "accepted"}
         if error:
             event["reason"] = error
+            runtime.stream_writer({"draft": ""})
         events = [*state["events"], event]
         if error and state["refinements"] < 1:
             return {"valid": False, "feedback": error, "refinements": 1, "events": events}

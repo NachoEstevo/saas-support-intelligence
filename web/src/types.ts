@@ -36,6 +36,7 @@ export type Job = {
       case_id: string | null;
     };
   };
+  draft_answer?: string;
   sources: Source[];
   events: Record<string, string | number>[];
   trace_id: string | null;

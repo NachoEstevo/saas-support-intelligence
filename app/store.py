@@ -25,12 +25,14 @@ if not id then return nil end
 local key = ARGV[1] .. ':job:' .. id
 if redis.call('HGET', key, 'status') ~= 'PENDING' then return nil end
 redis.call('HSET', key, 'status', 'RUNNING')
+redis.call('HDEL', key, 'draft_answer')
 redis.call('ZADD', KEYS[2], ARGV[2], id)
 return id
 """
 FINISH = """
 if redis.call('HGET', KEYS[1], 'status') ~= 'RUNNING' then return 0 end
 redis.call('HSET', KEYS[1], 'payload', ARGV[1], 'status', ARGV[2])
+redis.call('HDEL', KEYS[1], 'draft_answer')
 if ARGV[2] == 'FAILED' and redis.call('HEXISTS', KEYS[1], 'ticket_id') == 1 then
  redis.call('HSET', KEYS[1], 'error', 'TICKET_CREATED_EXECUTION_INCOMPLETE')
 end
@@ -59,6 +61,7 @@ for _,id in ipairs(ids) do
  local key = ARGV[2] .. ':job:' .. id
  if redis.call('HGET', key, 'status') == 'RUNNING' then
   redis.call('HSET', key, 'status', 'FAILED', 'error', 'WORKER_LOST')
+  redis.call('HDEL', key, 'draft_answer')
   if redis.call('HEXISTS', key, 'ticket_id') == 1 then
    redis.call('HSET', key, 'error', 'TICKET_CREATED_EXECUTION_INCOMPLETE')
   end
@@ -188,6 +191,9 @@ class Store:
         for key in ("resume", "approved"):
             if key in data:
                 updates[key] = json.loads(data[key])
+        updates["draft_answer"] = (
+            data.get("draft_answer", "") if data["status"] == "RUNNING" else ""
+        )
         return Job.model_validate(job.model_dump() | updates)
 
     async def claim(self, timeout: int) -> Job | None:
@@ -219,6 +225,15 @@ class Store:
 
     async def mark_trace(self, identity: UUID, trace_id: UUID) -> None:
         await self.redis.hset(self.key("job", identity), "trace_id", str(trace_id))
+
+    async def update_draft(self, identity: UUID, answer: str) -> None:
+        await self.redis.eval(
+            "if redis.call('HGET', KEYS[1], 'status') == 'RUNNING' then "
+            "return redis.call('HSET', KEYS[1], 'draft_answer', ARGV[1]) end return 0",
+            1,
+            self.key("job", identity),
+            answer,
+        )
 
     async def approve(self, identity: UUID, tenant_id: str, approved: bool) -> Job:
         transitioned = await self.redis.eval(

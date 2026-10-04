@@ -61,9 +61,9 @@ export default function App() {
     >
       <header className="topbar">
         <a className="brand" href="#">
-          <span className="brand-mark">r.</span>
+          <img className="brand-logo" src="/rely-logo.png" alt="Rely" />
           <span>
-            Rely <span className="brand-divider">/</span>{" "}
+            <span className="brand-divider">/</span>{" "}
             <span className="brand-secondary">Support lab</span>
           </span>
         </a>
@@ -118,17 +118,14 @@ export default function App() {
                 03 <strong>Conservá la revisión humana</strong>
               </span>
             </div>
-            <p className="auth-footnote">
-              Entorno educativo. No es un servicio oficial de Rely.
-            </p>
           </section>
           <div className="auth-bezel">
             <section className="auth-card">
-              <span className="eyebrow">Acceso a la demo local</span>
+              <span className="eyebrow">Acceso al espacio de trabajo</span>
               <h2>Tu espacio de trabajo.</h2>
               <p>
-                Usá una credencial de prueba configurada en tu servidor local.
-                No es una API key de OpenAI.
+                Ingresá la contraseña que te compartió el administrador.
+                Tu acceso determina si entrás como cliente o revisor.
               </p>
               <form
                 onSubmit={(e) => {
@@ -136,7 +133,7 @@ export default function App() {
                   void login();
                 }}
               >
-                <label htmlFor="credential">Credencial de la demo</label>
+                <label htmlFor="credential">Contraseña de acceso</label>
                 <input
                   id="credential"
                   type="password"
@@ -163,8 +160,8 @@ export default function App() {
                 </p>
               )}
               <small>
-                La credencial queda en memoria solo durante esta sesión. Al
-                salir se borra el espacio de trabajo.
+                La contraseña no se guarda en este navegador. Al cerrar sesión
+                se oculta el historial; tus conversaciones se conservan.
               </small>
             </section>
           </div>

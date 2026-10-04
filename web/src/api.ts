@@ -1,3 +1,5 @@
+import type { Job } from "./types";
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -15,7 +17,7 @@ const errors: Record<number, string> = {
   503: "El servicio de soporte no está disponible temporalmente.",
 };
 export function createApi(credential: string, logout: () => void) {
-  return async function request<T>(
+  async function request<T>(
     path: string,
     signal: AbortSignal,
     body?: unknown,
@@ -66,7 +68,81 @@ export function createApi(credential: string, logout: () => void) {
       clearTimeout(timeout);
       signal.removeEventListener("abort", cancel);
     }
-  };
+  }
+  return Object.assign(request, {
+    streamJob: async (
+      id: string,
+      signal: AbortSignal,
+      update: (job: Job) => void,
+    ) => {
+      const connection = new AbortController();
+      const abort = () => connection.abort();
+      signal.addEventListener("abort", abort, { once: true });
+      if (signal.aborted) abort();
+      const timeout = setTimeout(abort, 210_000);
+      try {
+        const response = await fetch(`/jobs/${id}/stream`, {
+          signal: connection.signal,
+          headers: { "X-API-Key": credential, Accept: "text/event-stream" },
+        });
+        if (!response.ok) {
+          if (response.status === 401) logout();
+          throw new ApiError(
+            response.status,
+            errors[response.status] || "No pudimos conectar con soporte.",
+          );
+        }
+        if (
+          !response.headers
+            .get("Content-Type")
+            ?.startsWith("text/event-stream") ||
+          !response.body
+        )
+          throw new Error("Streaming unavailable");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        const cancel = () => {
+          void reader.cancel().catch(() => {});
+        };
+        connection.signal.addEventListener("abort", cancel, { once: true });
+        if (connection.signal.aborted) cancel();
+        let buffer = "";
+        try {
+          while (!connection.signal.aborted) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let boundary: number;
+            while ((boundary = buffer.indexOf("\n\n")) >= 0) {
+              const frame = buffer.slice(0, boundary);
+              buffer = buffer.slice(boundary + 2);
+              if (frame.length > 100_000)
+                throw new Error("Invalid streaming response");
+              if (frame.startsWith("event: error"))
+                throw new Error("Streaming interrupted");
+              if (!frame.startsWith("event: job\n")) continue;
+              const updated = JSON.parse(
+                frame.slice("event: job\ndata: ".length),
+              ) as Job;
+              if (updated.id !== id)
+                throw new Error("Invalid streaming response");
+              if (!signal.aborted) update(updated);
+              if (!isActive(updated.status)) return;
+            }
+            if (buffer.length > 100_000)
+              throw new Error("Invalid streaming response");
+          }
+        } finally {
+          connection.signal.removeEventListener("abort", cancel);
+          await reader.cancel().catch(() => {});
+          reader.releaseLock();
+        }
+      } finally {
+        clearTimeout(timeout);
+        signal.removeEventListener("abort", abort);
+      }
+    },
+  });
 }
 export type Api = ReturnType<typeof createApi>;
 export const statusLabel = {

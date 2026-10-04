@@ -1,4 +1,6 @@
 import asyncio
+from itertools import count
+from types import SimpleNamespace
 
 import pytest
 
@@ -112,7 +114,9 @@ async def test_ticket_is_visible_even_if_execution_fails_after_creation(store, f
     assert (await store.get_ticket(failed.ticket_id, "demo-a")).id == ticket.id
 
 
-async def test_history_keeps_order_and_lists_are_bounded(store):
+async def test_history_keeps_order_and_lists_are_bounded(store, monkeypatch):
+    clock = count(start=1_800_000_000)
+    monkeypatch.setattr("app.store.time", SimpleNamespace(time=lambda: float(next(clock))))
     conversations = [await store.create_conversation("demo-a") for _ in range(52)]
     listed = await store.list_conversations("demo-a")
     assert len(listed) == 50

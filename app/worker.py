@@ -89,7 +89,15 @@ class Workers:
                         *[RemoveMessage(id=message.id) for message in messages[:-6]],
                         *payload["messages"],
                     ]
-                state = await self.graph.ainvoke(payload, config=config, context=context)
+                await self.store.update_draft(job.id, "")
+                state = {}
+                async for mode, update in self.graph.astream(
+                    payload, config=config, context=context, stream_mode=["custom", "values"]
+                ):
+                    if mode == "values":
+                        state = update
+                    elif mode == "custom" and "draft" in update:
+                        await self.store.update_draft(job.id, update["draft"])
             status = (
                 "WAITING_APPROVAL"
                 if state.get("__interrupt__")

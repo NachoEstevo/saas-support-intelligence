@@ -4,7 +4,7 @@ import {
   Plus,
   ArrowClockwise,
 } from "@phosphor-icons/react";
-import { statusLabel, type Api } from "./api";
+import { isActive, statusLabel, type Api } from "./api";
 import { useCustomer } from "./useCustomer";
 import Context from "./Context";
 const suggestions = [
@@ -71,14 +71,6 @@ export default function Customer({ api }: { api: Api }) {
               </span>
             </button>
           ))}
-        </div>
-        <div className="sidebar-note">
-          <span className="status-dot" /> Entorno educativo
-          <p>
-            Casos sintéticos. Fuentes públicas.
-            <br />
-            Sin datos de clientes reales.
-          </p>
         </div>
       </nav>
       <section className="chat" aria-label="Conversación de soporte">
@@ -155,6 +147,13 @@ export default function Customer({ api }: { api: Api }) {
                       </p>
                     )}
                   </>
+                ) : job.draft_answer && isActive(job.status) ? (
+                  <div className="streaming-answer">
+                    <p className="preserve">{job.draft_answer}</p>
+                    <span className="muted streaming-label" role="status">
+                      Verificando respuesta…
+                    </span>
+                  </div>
                 ) : (
                   <p className="muted">
                     {job.status === "FAILED"
@@ -232,10 +231,6 @@ export default function Customer({ api }: { api: Api }) {
               </button>
             </div>
           </form>
-          <small className="disclaimer">
-            Demo educativa. Verificá por tu cuenta la información legal y
-            financiera.
-          </small>
         </div>
       </section>
       <details className="mobile-context">

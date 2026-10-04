@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from redis.asyncio import Redis
@@ -26,6 +26,7 @@ from app.schemas import (
     Ticket,
 )
 from app.store import ConversationBusy, InvalidJobState, NotFound, Store
+from app.streaming import job_events
 from app.support import SupportService
 from app.worker import Workers
 
@@ -157,6 +158,21 @@ def create_app(
     @app.get("/jobs/{job_id}", response_model=Job)
     async def get_job(job_id: UUID, identity: Identity) -> Job:
         return await app.state.store.get_job(job_id, identity.tenant_id)
+
+    @app.get("/jobs/{job_id}/stream", response_class=StreamingResponse)
+    async def stream_job(job_id: UUID, request: Request, identity: Identity):
+        await app.state.store.get_job(job_id, identity.tenant_id)
+        return StreamingResponse(
+            job_events(
+                app.state.store,
+                job_id,
+                identity.tenant_id,
+                request,
+                settings.job_timeout_seconds + 30,
+            ),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
 
     @app.post("/jobs/{job_id}/approve", status_code=202, response_model=AcceptedJob)
     async def approve(job_id: UUID, request: ApprovalRequest, identity: Identity) -> AcceptedJob:

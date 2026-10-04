@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { isActive, type Api } from "./api";
+import { ApiError, isActive, type Api } from "./api";
 import type { AcceptedJob, Conversation, Job } from "./types";
 
 export function useCustomer(api: Api) {
@@ -78,25 +78,42 @@ export function useCustomer(api: Api) {
     const controller = new AbortController();
     const started = Date.now();
     let timer: ReturnType<typeof setTimeout>;
+    let finished = false;
+    const applyUpdate = (updated: Job) => {
+      if (controller.signal.aborted) return;
+      setJobs((items) =>
+        items.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      if (!isActive(updated.status)) {
+        finished = true;
+        void refreshConversations();
+      }
+    };
     const poll = async () => {
       try {
         const updated = await api<Job>(`/jobs/${active.id}`, controller.signal);
         if (controller.signal.aborted) return;
-        setJobs((items) =>
-          items.map((item) => (item.id === updated.id ? updated : item)),
-        );
+        applyUpdate(updated);
         if (isActive(updated.status)) {
           if (Date.now() - started > 210_000)
             setError(
               "Esta tarea demora más de lo esperado. Actualizá para consultar su estado.",
             );
           else timer = setTimeout(poll, 1500);
-        } else void refreshConversations();
+        }
       } catch (e) {
         if (!controller.signal.aborted) setError((e as Error).message);
       }
     };
-    timer = setTimeout(poll, 1500);
+    void api
+      .streamJob(active.id, controller.signal, applyUpdate)
+      .catch((e) => {
+        if (e instanceof ApiError && e.status === 401) controller.abort();
+      })
+      .finally(() => {
+        if (!controller.signal.aborted && !finished)
+          timer = setTimeout(poll, 1500);
+      });
     return () => {
       controller.abort();
       clearTimeout(timer);

@@ -99,15 +99,13 @@ small {
   font-weight: 600;
   font-size: 17px;
 }
-.brand-mark {
-  background: #202936;
-  color: white;
-  border-radius: 12px;
-  width: 35px;
-  height: 35px;
-  display: grid;
-  place-items: center;
-  font-size: 25px;
+.brand-logo {
+  width: 104px;
+  height: 56px;
+  display: block;
+  object-fit: cover;
+  filter: brightness(0);
+  flex-shrink: 0;
 }
 .brand-divider {
   color: #b0b6c0;
@@ -228,10 +226,6 @@ small {
   font-size: 13px;
   color: #3b4555;
   margin-left: 18px;
-}
-.auth-footnote {
-  font-size: 11px !important;
-  margin-top: 55px;
 }
 .auth-bezel {
   padding: 6px;
@@ -366,14 +360,6 @@ small {
   margin-top: 8px;
   font-size: 10px;
   color: #96a0ae;
-}
-.status-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  background: #65937e;
-  border-radius: 50%;
-  margin-right: 6px;
 }
 .chat,
 .review {
@@ -563,13 +549,6 @@ small {
   color: white;
   display: grid;
   place-items: center;
-}
-.disclaimer {
-  display: block;
-  text-align: center;
-  color: #a4adba;
-  font-size: 9px;
-  margin-top: 10px;
 }
 .desktop-context {
   min-width: 0;
@@ -804,10 +783,9 @@ small {
     font-size: 13px;
     gap: 8px;
   }
-  .brand-mark {
-    width: 29px;
-    height: 29px;
-    font-size: 21px;
+  .brand-logo {
+    width: 80px;
+    height: 44px;
   }
   .brand-divider {
     margin: 0 5px;
@@ -899,8 +877,7 @@ small {
   .auth-story > p {
     font-size: 13px;
   }
-  .auth-points,
-  .auth-footnote {
+  .auth-points {
     display: none;
   }
   .auth-card {

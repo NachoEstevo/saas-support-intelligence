@@ -1,6 +1,7 @@
+import json
 from collections import deque
 
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, AIMessageChunk
 
 from app.schemas import RouteDecision, Source, SupportResponse
 
@@ -39,6 +40,14 @@ class ScriptedModel:
     def bind_tools(self, tools, **kwargs):
         self.schema = None
         return self
+
+    def bind(self, **kwargs):
+        self.schema = kwargs["response_format"]
+        return self
+
+    async def astream(self, messages):
+        response = await self.ainvoke(messages)
+        yield AIMessageChunk(content=json.dumps(response.model_dump(), ensure_ascii=False))
 
     async def ainvoke(self, messages):
         self.inputs.append(messages)

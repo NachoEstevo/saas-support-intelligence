@@ -4,7 +4,14 @@ from pathlib import Path
 import pytest
 
 from app.config import Settings
-from app.rag import CORPUS_DIR, HybridRetriever, load_corpus, normalize, reciprocal_rank_fusion
+from app.rag import (
+    CORPUS_DIR,
+    HybridRetriever,
+    lexical_ranking,
+    load_corpus,
+    normalize,
+    reciprocal_rank_fusion,
+)
 from app.schemas import Source, SupportCase
 
 
@@ -413,12 +420,32 @@ async def test_foreign_vector_rows_cannot_consume_candidate_window(retriever):
 def test_global_corpus_separates_public_guides_from_synthetic_policies_and_case_data():
     chunks, _ = load_corpus(CORPUS_DIR)
     assert len({chunk.source for chunk in chunks if chunk.kind == "synthetic"}) == 9
-    assert len({chunk.source for chunk in chunks if chunk.kind == "public"}) == 3
+    public = [chunk for chunk in chunks if chunk.kind == "public"]
+    assert len({chunk.source for chunk in public}) == 11
+    assert all(chunk.source_url and chunk.checked_at for chunk in public)
     text = " ".join(chunk.text for chunk in chunks)
     assert "CASE-101" not in text
     assert "Alba Demo" not in text
     assert "Beta Demo" not in text
     assert {"document-requirements.json", "case-status.json"} <= {chunk.source for chunk in chunks}
+
+
+@pytest.mark.parametrize(
+    "query,expected",
+    [
+        ("Essential Business precio 449 549 socios", "rely_plans_public.json"),
+        ("EIN IRS confirmación emisión", "rely_ein_public.json"),
+        ("renovaciones mantenimiento anual contabilidad", "rely_renewals_public.json"),
+        ("Argentina fundador identificación porcentajes", "rely_argentina_preparation_public.json"),
+        ("Stripe perfil comercial producto precio reembolso", "rely_business_profile_public.json"),
+    ],
+)
+def test_rely_support_topics_have_retrievable_public_sources(query, expected):
+    chunks, _ = load_corpus(CORPUS_DIR)
+    by_id = {chunk.id: chunk for chunk in chunks}
+    matches = [by_id[chunk_id] for chunk_id in lexical_ranking(chunks, query)[:4]]
+    assert expected in {chunk.source for chunk in matches}
+    assert by_id[next(chunk.id for chunk in matches if chunk.source == expected)].kind == "public"
 
 
 def test_seed_cases_are_scoped_and_valid():

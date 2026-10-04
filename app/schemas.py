@@ -123,6 +123,7 @@ class Job(Contract):
     message: str
     status: JobStatus = "PENDING"
     response: SupportResponse | None = None
+    draft_answer: str = Field(default="", max_length=4000)
     sources: list[Source] = Field(default_factory=list)
     events: list[dict[str, str | int | float]] = Field(default_factory=list)
     trace_id: UUID | None = None
